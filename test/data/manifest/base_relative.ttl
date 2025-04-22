@@ -1,0 +1,13 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+
+<Service> a gno:Service
+    ; gno:serviceRepository <Repository>
+    ; gno:serviceStore <Store>
+.
+
+<Repository> a gno:Repository
+    ; gno:repositoryDataset <Dataset>
+.
+
+<Store> a gnoa:Fuseki .

@@ -1,0 +1,154 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rtc: <https://w3id.org/rtc#> .
+
+##########################################################################
+# Manifest
+##########################################################################
+
+gno:Manifest a rdfs:Class, owl:Class
+        ; rdfs:subClassOf foaf:Document
+        ; rdfs:label "Manifest"
+        ; rdfs:comment "A manifest document that describes a Gno service configuration, including repository and store settings."
+.
+
+    gno:manifestService a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
+            ; rdfs:subPropertyOf foaf:primaryTopic
+            ; rdfs:domain gno:Manifest
+            ; rdfs:range  gno:Service
+            ; rdfs:label "manifest service"
+            ; rdfs:comment "Links a manifest to its primary service configuration."
+    .
+
+
+##########################################################################
+# Service
+##########################################################################
+
+gno:Service a rdfs:Class, owl:Class
+        ; rdfs:subClassOf dcat:DataService
+        ; owl:disjointWith gno:Repository, gno:Store, gno:Dataset
+        ; rdfs:label "Service"
+        ; rdfs:comment "A gno:Service is a composition of a gno:Repository in a specific gno:Store."
+.
+    
+    gno:serviceRepository a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
+            ; rdfs:subPropertyOf dcat:servesDataset
+            ; rdfs:domain gno:Service
+            ; rdfs:range  gno:Repository
+            ; rdfs:label "service repository"
+            ; rdfs:comment "Links a service to its repository configuration."
+    .
+    
+    gno:serviceStore a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
+            ; rdfs:domain gno:Service
+            ; rdfs:range  gno:Store
+            ; rdfs:label "service store"
+            ; rdfs:comment "Links a service to its store configuration."
+    .
+    
+
+##########################################################################
+# Repository
+##########################################################################
+
+gno:Repository a rdfs:Class, owl:Class
+        ; rdfs:subClassOf dcat:Catalog
+        ; owl:disjointWith gno:Service, gno:Store, gno:Dataset
+        ; rdfs:label "Repository"
+        ; rdfs:comment "Represents a Gno repository, which is a DCAT catalog containing three components: 1) the dataset, 2) an implicit metadata graph and 3) potentially additional system graphs. The metadata graph contains the DCAT catalog description of the repository itself, including descriptions of the dataset and the system graphs."
+.
+
+    gno:repositoryDataset a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
+            ; rdfs:subPropertyOf dcat:dataset
+            ; rdfs:domain gno:Repository
+            ; rdfs:range  gno:Dataset
+            ; rdfs:label "repository dataset"
+            ; rdfs:comment "Links a repository to its primary dataset."
+    .
+
+
+##########################################################################
+# Dataset
+##########################################################################
+
+gno:Dataset a rdfs:Class, owl:Class
+        ; rdfs:subClassOf dcat:Dataset
+        ; owl:disjointWith gno:Service, gno:Store, gno:Repository
+        ; rdfs:label "Dataset"
+        ; rdfs:comment "Represents the RDF dataset within a Gno repository with actual user data. It contains the actual data being managed by Gno."
+.
+
+
+##########################################################################
+# Dataset
+##########################################################################
+
+gno:Store a rdfs:Class, owl:Class
+    ; owl:disjointWith gno:Service, gno:Repository, gno:Dataset
+    ; rdfs:label "Store"
+    ; rdfs:comment "Base class for triple stores that can host a Gno repository."
+.
+
+    gno:storeQueryEndpoint a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:anyURI
+        ; rdfs:label "store query endpoint"
+        ; rdfs:comment "The SPARQL query endpoint URL of the store."
+    .
+
+    gno:storeUpdateEndpoint a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:anyURI
+        ; rdfs:label "store update endpoint"
+        ; rdfs:comment "The SPARQL update endpoint URL of the store."
+    .
+
+    gno:storeGraphStoreEndpoint a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:anyURI
+        ; rdfs:label "store graph store endpoint"
+        ; rdfs:comment "The SPARQL Graph Store Protocol endpoint URL of the store."
+    .
+
+    gno:storeEndpointScheme a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:string
+        ; rdfs:label "store endpoint scheme"
+        ; rdfs:comment "The scheme for the store's endpoints."
+    .
+
+    gno:storeEndpointHost a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:string
+        ; rdfs:label "store endpoint host"
+        ; rdfs:comment "The host name for the store's endpoints."
+    .
+
+    gno:storeEndpointPort a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:positiveInteger
+        ; rdfs:label "store endpoint port"
+        ; rdfs:comment "The port number for the store's endpoints."
+    .
+
+    gno:storeEndpointUserInfo a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:string
+        ; rdfs:label "store endpoint user info"
+        ; rdfs:comment "The user info segment used in endpoint URLs."
+    .
+
+    gno:storeEndpointDataset a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:string
+        ; rdfs:label "store endpoint dataset"
+        ; rdfs:comment "The dataset name/path segment used in endpoint URLs."
+    .

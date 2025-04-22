@@ -1,0 +1,13 @@
+@base <http://example.com/> .
+@prefix gno: <https://w3id.org/gno#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<Service> a gno:Service
+    ; gno:serviceRepository <Repository>
+    ; gno:serviceStore <Fuseki>
+#    ; gno:serviceStore <Oxigraph>
+#    ; gno:serviceStore <GenericStore>
+    ; dcterms:title "test service"
+    ; dcterms:creator <User>
+    ; dcterms:publisher <User>
+.

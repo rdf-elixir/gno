@@ -24,3 +24,6 @@ gno-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# The directory to keep the dbs used during development.
+/db/

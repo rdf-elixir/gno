@@ -1,0 +1,7 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<http://example.com/Dataset> a gno:Dataset ;
+    dcterms:title "test dataset" .
+

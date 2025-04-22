@@ -1,0 +1,16 @@
+@base <http://example.com/> .
+@prefix gno: <https://w3id.org/gno#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<Repository> a gno:Repository
+    ; gno:repositoryDataset <Dataset>
+    ; dcterms:title "test repository"
+    ; dcterms:creator <User>
+    ; dcterms:publisher <User>
+.
+
+<Dataset> a gno:Dataset
+    ; dcterms:title "test dataset"
+    ; dcterms:creator <User>
+    ; dcterms:publisher <User>
+.

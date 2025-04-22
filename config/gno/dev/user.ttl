@@ -1,0 +1,6 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<User> a foaf:Agent
+    ; foaf:name "Jane Doe"
+    ; foaf:mbox <mailto:jane.doe@example.com>
+.

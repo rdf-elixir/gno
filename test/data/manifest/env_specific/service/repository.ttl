@@ -1,0 +1,6 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<http://example.com/Repository> a gno:Repository
+    ; dcterms:creator <http://example.com/Agent>
+.

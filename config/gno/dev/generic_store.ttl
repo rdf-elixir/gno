@@ -1,0 +1,7 @@
+@prefix gno: <https://w3id.org/gno#> .
+
+<GenericStore> a gno:Store
+    ; gno:storeQueryEndpoint <http://localhost:7878/query>
+    ; gno:storeUpdateEndpoint <http://localhost:7878/update>
+    ; gno:storeGraphStoreEndpoint <http://localhost:7878/store>
+.

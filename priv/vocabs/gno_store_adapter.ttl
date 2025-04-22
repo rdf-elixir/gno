@@ -1,0 +1,16 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+gnoa:Oxigraph a rdfs:Class
+    ; rdfs:subClassOf gno:Store
+    ; rdfs:label "Oxigraph store"
+    # https://crates.io/crates/oxigraph-cli
+.
+
+gnoa:Fuseki a rdfs:Class
+    ; rdfs:subClassOf gno:Store
+    ; rdfs:label "Fuseki store"
+    #
+.

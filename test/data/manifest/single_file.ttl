@@ -1,0 +1,13 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+
+<http://example.com/Service> a gno:Service
+    ; gno:serviceRepository <http://example.com/Repository>
+    ; gno:serviceStore <http://example.com/Store>
+.
+
+<http://example.com/Repository> a gno:Repository
+    ; gno:repositoryDataset <http://example.com/Dataset>
+.
+
+<http://example.com/Store> a gnoa:Oxigraph .
