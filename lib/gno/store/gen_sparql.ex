@@ -66,6 +66,13 @@ defmodule Gno.Store.GenSPARQL do
     |> Keyword.put(:to, graph)
   end
 
+  defp graph_store_opts(%Operation{name: name, payload: payload}, opts, _graph)
+       when name in [:add, :copy, :move] do
+    opts
+    |> general_opts()
+    |> Keyword.merge(payload)
+  end
+
   defp graph_store_opts(_op, opts, graph) do
     opts
     |> general_opts()

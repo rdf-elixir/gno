@@ -89,4 +89,11 @@ defmodule Gno.Store.SPARQL.Operation do
   def drop!(opts \\ []), do: new!(:drop, nil, opts)
   def create(opts \\ []), do: new(:create, nil, opts)
   def create!(opts \\ []), do: new!(:create, nil, opts)
+
+  def add(source, target, opts \\ []), do: new(:add, [from: source, to: target], opts)
+  def add!(source, target, opts \\ []), do: new!(:add, [from: source, to: target], opts)
+  def copy(source, target, opts \\ []), do: new(:copy, [from: source, to: target], opts)
+  def copy!(source, target, opts \\ []), do: new!(:copy, [from: source, to: target], opts)
+  def move(source, target, opts \\ []), do: new(:move, [from: source, to: target], opts)
+  def move!(source, target, opts \\ []), do: new!(:move, [from: source, to: target], opts)
 end
