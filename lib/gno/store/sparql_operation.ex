@@ -80,8 +80,8 @@ defmodule Gno.Store.SPARQL.Operation do
   def delete_data(data, opts \\ []), do: new(:delete_data, data, opts)
   def delete_data!(data, opts \\ []), do: new!(:delete_data, data, opts)
 
-  def load(query, opts \\ []), do: new(:load, query, opts)
-  def load!(query, opts \\ []), do: new!(:load, query, opts)
+  def load(iri, opts \\ []), do: new(:load, iri, opts)
+  def load!(iri, opts \\ []), do: new!(:load, iri, opts)
 
   def clear(opts \\ []), do: new(:clear, nil, opts)
   def clear!(opts \\ []), do: new!(:clear, nil, opts)

@@ -41,7 +41,7 @@ defmodule Gno.Store.GenSPARQL do
   @doc operation: :update
   def handle(%Operation{type: :update, update_type: :graph_store} = op, adapter, graph_name, opts) do
     with {:ok, endpoint} <- Store.update_endpoint(adapter) do
-      apply(SPARQL.Client, op.name, [endpoint, Keyword.put(opts, :graph, graph_name)])
+      apply(SPARQL.Client, op.name, [endpoint, graph_store_opts(op, opts, graph_name)])
     end
   end
 
@@ -49,17 +49,31 @@ defmodule Gno.Store.GenSPARQL do
     opts
     |> general_opts()
     |> add_graph_opt(:query, graph)
+    |> Keyword.put_new(:raw_mode, true)
   end
 
   defp update_opts(opts, graph) do
     opts
     |> general_opts()
     |> add_graph_opt(:update, graph)
+    |> Keyword.put_new(:raw_mode, true)
+  end
+
+  defp graph_store_opts(%Operation{name: :load, payload: iri}, opts, graph) do
+    opts
+    |> general_opts()
+    |> Keyword.put(:from, iri)
+    |> Keyword.put(:to, graph)
+  end
+
+  defp graph_store_opts(_op, opts, graph) do
+    opts
+    |> general_opts()
+    |> Keyword.put(:graph, graph)
   end
 
   defp general_opts(opts) do
     opts
-    |> Keyword.put_new(:raw_mode, true)
     |> Keyword.put_new(:request_opts, adapter: [recv_timeout: :infinity])
   end
 
