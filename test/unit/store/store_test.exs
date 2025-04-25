@@ -78,10 +78,13 @@ defmodule Gno.StoreTest do
              |> Store.handle_sparql(Manifest.store!(), Manifest.repository!().__id__) ==
                :ok
 
-      assert "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o . }"
-             |> Operation.construct!()
-             |> Store.handle_sparql(Manifest.store!(), Manifest.repository!().__id__) ==
-               {:ok, graph}
+      assert {:ok, result} =
+               "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o . }"
+               |> Operation.construct!()
+               |> Store.handle_sparql(Manifest.store!(), Manifest.repository!().__id__)
+
+      # some triple stores (like Fuseki) add all known prefixes
+      assert Graph.clear_prefixes(result) == graph
     end
   end
 

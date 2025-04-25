@@ -22,6 +22,12 @@ defmodule Gno.Repository do
   def graph_id(_repository, nil), do: nil
   def graph_id(_repository, :all), do: :all
   def graph_id(_repository, %IRI{} = graph_name), do: graph_name
+  def graph_id(_repository, graph_name) when is_binary(graph_name), do: RDF.iri(graph_name)
   def graph_id(repository, :repo), do: graph_id(repository)
   def graph_id(repository, :dataset), do: dataset_graph_id(repository)
+
+  # for now we assume that the graph name is the same as the graph id
+  def graph_name(repository, graph_id) do
+    graph_id(repository, graph_id)
+  end
 end

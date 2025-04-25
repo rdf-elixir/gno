@@ -11,10 +11,7 @@ defmodule Gno.StoreCase do
     end
   end
 
-  alias Gno.Store
-  alias Gno.Store.SPARQL.Operation
-
   def clean_store!(_) do
-    :ok = Store.handle_sparql(Operation.drop!(), Gno.Manifest.store!(), :all)
+    :ok = Gno.drop(:all)
   end
 end

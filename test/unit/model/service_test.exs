@@ -61,10 +61,13 @@ defmodule Gno.ServiceTest do
              |> Service.handle_sparql(Manifest.service!(), :repo) ==
                :ok
 
-      assert "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o . }"
-             |> Operation.construct!()
-             |> Service.handle_sparql(Manifest.service!(), :repo) ==
-               {:ok, graph}
+      assert {:ok, result} =
+               "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o . }"
+               |> Operation.construct!()
+               |> Service.handle_sparql(Manifest.service!(), :repo)
+
+      # some triple stores (like Fuseki) add all known prefixes
+      assert Graph.clear_prefixes(result) == graph
     end
   end
 end
