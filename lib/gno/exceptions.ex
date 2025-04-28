@@ -1,3 +1,10 @@
+defmodule Gno.Manifest.GeneratorError do
+  @moduledoc """
+  Raised on errors when generating `Gno.Manifest` files.
+  """
+  defexception [:message]
+end
+
 defmodule Gno.Manifest.LoadingError do
   @moduledoc """
   Raised on errors when loading a `Gno.Manifest` graph.

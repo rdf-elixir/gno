@@ -46,6 +46,10 @@ defmodule Gno do
   alias Gno.Store.SPARQL.Operation
   import Gno.Utils, only: [bang!: 2]
 
+  def manifest_type do
+    Application.get_env(:gno, :manifest_type, Gno.Manifest)
+  end
+
   defdelegate manifest(opts \\ []), to: Gno.Manifest
   defdelegate manifest!(opts \\ []), to: Gno.Manifest
 

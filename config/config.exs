@@ -1,6 +1,8 @@
 import Config
 
-config :gno, env: Mix.env()
+config :gno,
+  env: Mix.env(),
+  manifest_type: Gno.Manifest
 
 config :sparql_client,
   protocol_version: "1.1",

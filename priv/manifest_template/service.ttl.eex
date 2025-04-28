@@ -1,0 +1,27 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+<Service> a gno:Service
+
+    #################################################
+    # store selection
+
+		# Select to adapter of your choice and feel free to remove the unused
+		# (incl. their respective manifest files)
+		<%= unless @adapter == nil, do: "#" %>; gno:serviceStore <Store>
+		<%= unless @adapter == Gno.Store.Adapters.Oxigraph, do: "#" %>; gno:serviceStore <Oxigraph>
+		<%= unless @adapter == Gno.Store.Adapters.Fuseki, do: "#" %>; gno:serviceStore <Fuseki>
+
+    #################################################
+    # metadata
+
+    ; dcterms:title "Your service name"
+    ; dcterms:creator <Creator>
+    ; dcterms:publisher <Publisher>
+
+.

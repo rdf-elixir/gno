@@ -10,6 +10,16 @@ defmodule Gno.Manifest.Type do
   @type schema :: Grax.Schema.t()
 
   @doc """
+  Callback for returning the path to the default template for manifest generation.
+  """
+  @callback generator_template :: String.t()
+
+  @doc """
+  Callback for generating a manifest.
+  """
+  @callback generate(project_dir :: Path.t(), opts :: keyword()) :: :ok | {:error, any()}
+
+  @doc """
   Callback for initializing a new graph with predefined setup.
   """
   @callback init_graph(opts :: keyword()) :: Graph.t()
@@ -27,6 +37,16 @@ defmodule Gno.Manifest.Type do
   defmacro __using__(_) do
     quote do
       @behaviour unquote(__MODULE__)
+
+      @impl true
+      def generator_template do
+        Gno.Manifest.Generator.default_template_dir()
+      end
+
+      @impl true
+      def generate(project_dir, opts \\ []) do
+        Gno.Manifest.Generator.generate(__MODULE__, project_dir, opts)
+      end
 
       @impl true
       def init_graph(opts) do
@@ -81,7 +101,10 @@ defmodule Gno.Manifest.Type do
         end
       end
 
-      defoverridable init_graph: 1,
+      defoverridable generate: 1,
+                     generate: 2,
+                     generator_template: 0,
+                     init_graph: 1,
                      load_file: 2,
                      load_manifest: 2,
                      service: 0,
