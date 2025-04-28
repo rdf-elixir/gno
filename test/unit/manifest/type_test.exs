@@ -12,7 +12,7 @@ defmodule Gno.Manifest.TypeTest do
               %CustomManifest{
                 __id__: RDF.bnode("manifest"),
                 foo: "bar",
-                load_path: TestData.manifest("single_file.ttl"),
+                load_path: [TestData.manifest("single_file.ttl")],
                 graph:
                   Graph.new(
                     [
