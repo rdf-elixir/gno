@@ -65,7 +65,7 @@ defmodule Gno.Manifest.Type do
 
       @spec manifest(keyword()) :: {:ok, t()} | {:error, ManifestError.t()}
       def manifest(opts \\ []) do
-        Gno.Manifest.Loader.load(__MODULE__, opts)
+        Gno.Manifest.Cache.manifest(__MODULE__, opts)
       end
 
       def manifest!(opts \\ []), do: Gno.Utils.bang!(&manifest/1, [opts])

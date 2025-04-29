@@ -18,10 +18,16 @@ defmodule GnoCase do
       alias Gno.TestData
       alias Gno.TestNamespaces.EX
       @compile {:no_warn_undefined, Gno.TestNamespaces.EX}
+
+      setup :clean_manifest_cache
     end
   end
 
   alias RDF.{Graph, IRI}
+
+  def clean_manifest_cache(_) do
+    Gno.Manifest.Cache.clear()
+  end
 
   def configured_store_adapter do
     "config/gno/test/service.ttl"
