@@ -73,3 +73,29 @@ defmodule Gno.Store.SPARQL.InvalidOperationError do
     "Invalid SPARQL operation: #{inspect(operation)}"
   end
 end
+
+defmodule Gno.InvalidChangesetError do
+  @moduledoc """
+  Raised on invalid `Gno.Changeset` args.
+  """
+  defexception [:changes, :reason]
+
+  def message(%{reason: :empty}) do
+    "Invalid changeset: no changes provided"
+  end
+
+  def message(%{reason: reason}) do
+    "Invalid changeset: #{reason}"
+  end
+end
+
+defmodule Gno.NoEffectiveChanges do
+  @moduledoc """
+  Raised when some changes wouldn't have any effects against the current repository.
+  """
+  defexception []
+
+  def message(%__MODULE__{}) do
+    "No effective changes."
+  end
+end

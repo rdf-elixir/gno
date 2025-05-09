@@ -11,9 +11,10 @@ defmodule GnoCase do
 
       import unquote(__MODULE__)
       import RDF, only: [iri: 1, literal: 1, bnode: 1]
+      import Gno.TestFactories
 
       alias RDF.{IRI, BlankNode, Literal, Graph}
-      alias Gno.{Manifest, Service, Store, Repository, Dataset}
+      alias Gno.{Manifest, Service, Store, Repository, Dataset, Changeset}
       alias Gno.NS.GnoA
       alias Gno.TestData
       alias Gno.TestNamespaces.EX

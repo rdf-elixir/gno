@@ -46,6 +46,10 @@ defmodule Gno do
   alias Gno.Store.SPARQL.Operation
   import Gno.Utils, only: [bang!: 2]
 
+  def ansi_enabled? do
+    Application.get_env(:gno, :ansi_enabled, true)
+  end
+
   def manifest_type do
     Application.get_env(:gno, :manifest_type, Gno.Manifest)
   end
@@ -584,4 +588,34 @@ defmodule Gno do
   Same as `move/1` but raises on errors.
   """
   def move!(source, target, opts \\ []), do: bang!(&move/3, [source, target, opts])
+
+  @doc """
+  Creates a new `Gno.Changeset`.
+
+  ## Examples
+
+      iex> Gno.changeset(add: EX.S |> EX.p(EX.O))
+      {:ok, %Gno.Changeset{add: RDF.graph(EX.S |> EX.p(EX.O))}}
+  """
+  defdelegate changeset(changes), to: Gno.Changeset, as: :new
+
+  def changeset!(changes), do: bang!(&changeset/1, [changes])
+
+  @doc """
+  Creates an `Gno.EffectiveChangeset`.
+
+  ## Examples
+
+      iex> Gno.insert_data(EX.S |> EX.p(EX.O1))
+      iex> Gno.effective_changeset(add: EX.S |> EX.p([EX.O1, EX.O2]))
+      {:ok, %Gno.EffectiveChangeset{add: RDF.graph(EX.S |> EX.p(EX.O2))}}
+  """
+  def effective_changeset(changes, opts \\ []) do
+    with {:ok, service} <- service(opts) do
+      Gno.EffectiveChangeset.Query.call(service, changes)
+    end
+  end
+
+  def effective_changeset!(changes, opts \\ []),
+    do: bang!(&effective_changeset/2, [changes, opts])
 end

@@ -152,3 +152,14 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:label "store endpoint dataset"
         ; rdfs:comment "The dataset name/path segment used in endpoint URLs."
     .
+
+
+##########################################################################
+# Graph name constants for changeset actions
+##########################################################################
+
+gno:Addition rdfs:comment "Graph name for additions in a RDF encoded changeset".
+gno:Removal rdfs:comment "Graph name for removals in a RDF encoded changeset".
+gno:Update rdfs:comment "Graph name for updates in a RDF encoded changeset".
+gno:Replacement rdfs:comment "Graph name for replacements in a RDF encoded changeset".
+gno:Overwrite rdfs:comment "Graph name for overwrites in a RDF encoded changeset".
