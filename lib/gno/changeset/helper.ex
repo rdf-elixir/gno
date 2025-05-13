@@ -16,8 +16,8 @@ defmodule Gno.Changeset.Helper do
     end
   end
 
-  def deletes(%{remove: nil}), do: Graph.new()
-  def deletes(%{remove: remove}), do: remove
+  def removals(%{remove: nil}), do: Graph.new()
+  def removals(%{remove: remove}), do: remove
 
   def overwrites(%{overwrite: nil}), do: Graph.new()
   def overwrites(%{overwrite: overwrite}), do: overwrite

@@ -36,7 +36,7 @@ defmodule Gno.Changeset.Formatter do
 
   defp do_format(changeset, :short_stat, opts) do
     insertions = Changeset.Helper.inserts(changeset)
-    deletions = Changeset.Helper.deletes(changeset)
+    deletions = Changeset.Helper.removals(changeset)
     overwrites = Changeset.Helper.overwrites(changeset)
     changed_resources = changed_resources({insertions, deletions, overwrites})
 
@@ -54,7 +54,7 @@ defmodule Gno.Changeset.Formatter do
   defp do_format(changeset, :stat, opts) do
     colorize = Keyword.get(opts, :color, Gno.ansi_enabled?())
     insertions = Changeset.Helper.inserts(changeset)
-    deletions = Changeset.Helper.deletes(changeset)
+    deletions = Changeset.Helper.removals(changeset)
     overwrites = Changeset.Helper.overwrites(changeset)
 
     max_change_length =
@@ -179,7 +179,7 @@ defmodule Gno.Changeset.Formatter do
   defp changed_resources(changeset) do
     {
       Changeset.Helper.inserts(changeset),
-      Changeset.Helper.deletes(changeset),
+      Changeset.Helper.removals(changeset),
       Changeset.Helper.overwrites(changeset)
     }
     |> changed_resources()
