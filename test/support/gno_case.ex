@@ -11,6 +11,7 @@ defmodule GnoCase do
 
       import unquote(__MODULE__)
       import RDF, only: [iri: 1, literal: 1, bnode: 1]
+      import RDF.Test.Assertions
       import Gno.TestFactories
 
       alias RDF.{IRI, BlankNode, Literal, Graph}

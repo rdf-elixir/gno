@@ -6,11 +6,15 @@ defmodule Gno.TestFactories do
   use RDF
 
   alias RDF.Graph
-
-  alias Gno.{Changeset, EffectiveChangeset}
+  alias Gno.{Changeset, EffectiveChangeset, Commit}
 
   alias Gno.TestNamespaces.EX
   @compile {:no_warn_undefined, Gno.TestNamespaces.EX}
+
+  def datetime, do: ~U[2023-05-26 13:02:02.255559Z]
+
+  def datetime(amount_to_add, unit \\ :second),
+    do: datetime() |> DateTime.add(amount_to_add, unit)
 
   def statement(id) when is_integer(id) or is_atom(id) do
     {
@@ -103,5 +107,29 @@ defmodule Gno.TestFactories do
     attrs
     |> changeset_attrs()
     |> EffectiveChangeset.new!()
+  end
+
+  def commit_operation(type, attrs \\ [])
+
+  def commit_operation(attrs, []) when is_list(attrs) do
+    attrs
+    |> Keyword.get(:commit_operation, TestCommitOperation)
+    |> commit_operation(attrs)
+  end
+
+  def commit_operation(type, attrs) when is_atom(type) do
+    commit_operation(type.default(), attrs)
+  end
+
+  def commit_operation(%_{} = commit_operation, attrs) do
+    Grax.put!(commit_operation, attrs)
+  end
+
+  def service(attrs \\ []) do
+    %{Gno.Manifest.service!() | commit_operation: commit_operation(attrs)}
+  end
+
+  def commit_processor(attrs \\ []) do
+    Commit.Processor.new!(service(attrs))
   end
 end

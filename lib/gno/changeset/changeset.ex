@@ -78,7 +78,29 @@ defmodule Gno.Changeset do
   def empty?(%__MODULE__{add: nil, update: nil, replace: nil, remove: nil}), do: true
   def empty?(%__MODULE__{}), do: false
 
+  @doc """
+  Returns a combined graph of all statements that will be inserted by the changeset.
+  """
   def inserts(%__MODULE__{} = changeset), do: Helper.inserts(changeset)
+
+  @doc """
+  Returns a combined graph of all statements that will be deleted by the changeset.
+  """
+  def deletes(%__MODULE__{remove: nil}), do: RDF.graph()
+  def deletes(%__MODULE__{remove: remove}), do: remove
+
+  @doc """
+  Inverts the changeset.
+  """
+  def invert(%__MODULE__{} = changeset) do
+    %__MODULE__{
+      add: changeset.remove,
+      remove:
+        changeset.add
+        |> graph_add(changeset.update)
+        |> graph_add(changeset.replace)
+    }
+  end
 
   def to_rdf(%__MODULE__{} = changeset, opts \\ []), do: Helper.to_rdf(changeset, opts)
 

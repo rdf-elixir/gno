@@ -171,4 +171,32 @@ defmodule GnoTest do
     refute Gno.ask!("ASK { ?s ?p ?o }", source_opts)
     refute Gno.ask!("ASK { ?s ?p ?o }", source_opts)
   end
+
+  test "commit/2" do
+    refute Gno.ask!("ASK { ?s ?p ?o }")
+
+    description = EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2)
+    expected_changeset = Gno.EffectiveChangeset.new!(add: description)
+
+    assert {:ok, %Gno.Commit{changeset: ^expected_changeset, time: time}} =
+             Gno.commit(add: description)
+
+    assert DateTime.diff(DateTime.utc_now(), time, :second) <= 1
+
+    assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
+             graph(description)
+
+    expected_changeset =
+      Gno.EffectiveChangeset.new!(
+        update: EX.S1 |> EX.p2("foo"),
+        overwrite: EX.S1 |> EX.p2(EX.O2)
+      )
+
+    assert {:ok, %Gno.Commit{changeset: ^expected_changeset}} =
+             Gno.commit(update: EX.S1 |> EX.p1(EX.O1) |> EX.p2("foo"))
+             |> without_prefixes()
+
+    assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
+             graph(EX.S1 |> EX.p1(EX.O1) |> EX.p2("foo"))
+  end
 end

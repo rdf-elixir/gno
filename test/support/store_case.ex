@@ -15,6 +15,14 @@ defmodule Gno.StoreCase do
     :ok = Gno.drop(:all)
   end
 
+  def without_prefixes({:ok, value}) do
+    {:ok, without_prefixes(value)}
+  end
+
+  def without_prefixes(%Gno.Commit{} = commit) do
+    %Gno.Commit{commit | changeset: without_prefixes(commit.changeset)}
+  end
+
   def without_prefixes(%Gno.EffectiveChangeset{} = changeset) do
     %Gno.EffectiveChangeset{
       changeset

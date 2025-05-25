@@ -618,4 +618,11 @@ defmodule Gno do
 
   def effective_changeset!(changes, opts \\ []),
     do: bang!(&effective_changeset/2, [changes, opts])
+
+  def commit(changes, opts \\ []) do
+    with {:ok, service} <- service(opts),
+         {:ok, processor} <- Gno.Commit.Processor.new(service) do
+      Gno.Commit.Processor.execute(processor, changes, opts)
+    end
+  end
 end

@@ -53,7 +53,13 @@ gno:Service a rdfs:Class, owl:Class
             ; rdfs:label "service store"
             ; rdfs:comment "Links a service to its store configuration."
     .
-    
+
+    gno:serviceCommitOperation a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
+            ; rdfs:domain gno:Service
+            ; rdfs:range  gno:CommitOperation
+            ; rdfs:label "service commit operation"
+            ; rdfs:comment "Links a service to its commit operation configuration."
+    .
 
 ##########################################################################
 # Repository
@@ -152,6 +158,35 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:label "store endpoint dataset"
         ; rdfs:comment "The dataset name/path segment used in endpoint URLs."
     .
+
+##########################################################################
+# Commit
+##########################################################################
+
+gno:Commit a rdfs:Class
+        ; rdfs:subClassOf prov:Activity
+        ; rdfs:label "Commit"
+        ; rdfs:comment "Represents set of changes made to a repository. A commit encapsulates the effective changes resulting from applying a changeset to the current state of the repository."
+.
+
+##########################################################################
+# CommitOperation
+##########################################################################
+
+gno:CommitOperation a rdfs:Class
+        ; rdfs:label "CommitOperation"
+        ; rdfs:comment "Represents the configuration of a commit operation of a service."
+.
+
+    gno:commitMiddleware a rdf:Property
+        ; rdfs:domain gno:CommitOperation
+        ; rdfs:range  gno:CommitMiddleware
+    .
+
+gno:CommitMiddleware a rdfs:Class
+        ; rdfs:label "CommitMiddleware"
+        ; rdfs:comment "Represents a middleware component of a commit operation."
+.
 
 
 ##########################################################################

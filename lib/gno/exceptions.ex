@@ -99,3 +99,25 @@ defmodule Gno.NoEffectiveChanges do
     "No effective changes."
   end
 end
+
+defmodule Gno.Commit.ProcessorError do
+  @moduledoc """
+  Raised on errors in `Gno.Commit.Processor`.
+  """
+  defexception [:processor]
+
+  def message(%{processor: processor}) do
+    "Commit processing error (#{processor.state}): #{processor.errors |> Enum.reverse() |> Enum.map_join("\n", &inspect/1)}"
+  end
+end
+
+defmodule Gno.Commit.ProcessorRollbackError do
+  @moduledoc """
+  Raised on errors during rollback in `Gno.Commit.Processor`.
+  """
+  defexception [:processor, :error]
+
+  def message(%{processor: processor, error: error}) do
+    "Commit processing rollback error (#{processor.state}): #{inspect(error)}"
+  end
+end

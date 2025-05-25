@@ -1,0 +1,5 @@
+@prefix gno: <https://w3id.org/gno#> .
+
+<http://example.com/Service> a gno:Service
+        ; gno:serviceCommitOperation <http://example.com/TestCommitOperation>
+.

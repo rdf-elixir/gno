@@ -82,7 +82,18 @@ defmodule Gno.EffectiveChangeset do
 
   def empty?(%__MODULE__{}), do: false
 
+  @doc """
+  Returns a combined graph of all statements that will be inserted by the changeset.
+  """
   def inserts(%__MODULE__{} = changeset), do: Helper.inserts(changeset)
+
+  @doc """
+  Returns a combined graph of all statements that will be deleted by the changeset.
+  """
+  def deletes(%__MODULE__{remove: nil, overwrite: nil}), do: RDF.graph()
+  def deletes(%__MODULE__{remove: remove, overwrite: nil}), do: remove
+  def deletes(%__MODULE__{remove: nil, overwrite: overwrite}), do: overwrite
+  def deletes(%__MODULE__{remove: remove, overwrite: overwrite}), do: Graph.add(remove, overwrite)
 
   def to_rdf(%__MODULE__{} = changeset, opts \\ []), do: Helper.to_rdf(changeset, opts)
 
@@ -274,6 +285,9 @@ defmodule Gno.EffectiveChangeset do
     |> Enum.reduce(changeset, &do_merge(&2, [&1]))
   end
 
+  @doc """
+  Inverts the changeset.
+  """
   def invert(%__MODULE__{} = changeset) do
     %__MODULE__{
       add: graph_add(changeset.remove, changeset.overwrite),

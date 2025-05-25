@@ -177,4 +177,60 @@ defmodule Gno.Manifest.LoaderTest do
                 )}
     end
   end
+
+  describe "loading a commit operation configuration" do
+    test "custom commit operation and middlewares" do
+      load_path = [
+        TestData.manifest("single_file.ttl"),
+        TestData.manifest("commit_config/custom_commit_operation_with_middleware.ttl")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                load_path: ^load_path,
+                service: %Gno.Service{
+                  commit_operation: %TestCommitOperation{
+                    middlewares: [
+                      %TestStateFlowMiddleware{label: "first"},
+                      %TestStateFlowMiddleware{label: "second"}
+                    ]
+                  }
+                }
+              }} = Loader.load(Gno.Manifest, load_path: load_path)
+    end
+
+    test "custom commit operation as class" do
+      load_path = [
+        TestData.manifest("single_file.ttl"),
+        TestData.manifest("commit_config/custom_commit_operation_as_class.ttl")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                load_path: ^load_path,
+                service: %Gno.Service{
+                  commit_operation: %TestCommitOperation{}
+                }
+              }} = Loader.load(Gno.Manifest, load_path: load_path)
+    end
+
+    test "commit middleware as class" do
+      load_path = [
+        TestData.manifest("single_file.ttl"),
+        TestData.manifest("commit_config/commit_operation_with_middleware_as_class.ttl")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                load_path: ^load_path,
+                service: %Gno.Service{
+                  commit_operation: %Gno.CommitOperation{
+                    middlewares: [
+                      %TestStateFlowMiddleware{label: "default"}
+                    ]
+                  }
+                }
+              }} = Loader.load(Gno.Manifest, load_path: load_path)
+    end
+  end
 end
