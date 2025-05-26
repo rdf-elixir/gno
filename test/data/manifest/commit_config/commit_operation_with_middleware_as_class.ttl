@@ -2,5 +2,5 @@
 @prefix ex: <http://example.com/> .
 
 ex:Service a gno:Service
-        ; gno:serviceCommitOperation [ gno:commitMiddleware ( ex:TestStateFlowMiddleware  ) ]
+        ; gno:serviceCommitOperation [ gno:commitMiddleware ( ex:TestStateFlowMiddleware gno:CommitLogger ) ]
 .

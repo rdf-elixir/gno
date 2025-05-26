@@ -4,6 +4,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dct: <http://purl.org/dc/terms/> .
@@ -187,6 +188,40 @@ gno:CommitMiddleware a rdfs:Class
         ; rdfs:label "CommitMiddleware"
         ; rdfs:comment "Represents a middleware component of a commit operation."
 .
+
+gno:CommitLogger a rdfs:Class
+        ; rdfs:subClassOf gno:CommitMiddleware
+        ; rdfs:label "LoggingMiddleware"
+        ; rdfs:comment "Middleware for logging commit operations."
+.
+
+    gno:commitLogLevel a rdf:Property
+        ; rdfs:domain gno:CommitLogger
+        ; rdfs:range  xsd:string
+        ; rdfs:label "log level"
+        ; rdfs:comment "The log level for the logging middleware. The value MUST be one of the log levels defined in Erlang's Logger module."
+    .
+
+    gno:commitLogStates a rdf:Property
+        ; rdfs:domain gno:CommitLogger
+        ; rdfs:range  xsd:string
+        ; rdfs:label "log states"
+        ; rdfs:comment "The list of states for which log entries should be generated."
+    .
+
+    gno:commitLogChanges a rdf:Property
+        ; rdfs:domain gno:CommitLogger
+        ; rdfs:range  xsd:boolean
+        ; rdfs:label "log changes"
+        ; rdfs:comment "Whether to log the changeset details."
+    .
+
+    gno:commitLogMetadata a rdf:Property
+        ; rdfs:domain gno:CommitLogger
+        ; rdfs:range  xsd:boolean
+        ; rdfs:label "log metadata"
+        ; rdfs:comment "Whether to log commit metadata."
+    .
 
 
 ##########################################################################

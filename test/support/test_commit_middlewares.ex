@@ -6,12 +6,14 @@ defmodule TestStateFlowMiddleware do
   use Gno.CommitMiddleware
 
   alias Gno.Commit.Processor
+  alias Gno.CommitLogger
   alias RDF.Graph
   alias Gno.TestNamespaces.EX
   @compile {:no_warn_undefined, Gno.TestNamespaces.EX}
 
   def_middleware EX.TestStateFlowMiddleware do
     property :label, RDF.NS.RDFS.label(), type: :string, default: "default"
+    property :custom_log_message, EX.customLogMessage(), type: :string
     field :fail_on_state
     field :fail_type
   end
@@ -40,6 +42,13 @@ defmodule TestStateFlowMiddleware do
   end
 
   def handle_state(state, %__MODULE__{} = middleware, processor) do
+    processor =
+      if middleware.custom_log_message do
+        CommitLogger.log(processor, middleware.custom_log_message)
+      else
+        processor
+      end
+
     prepend_state_flow(processor, middleware, state)
   end
 

@@ -6,6 +6,8 @@ defmodule Gno.Commit.ProcessorTest do
   alias Gno.Commit.{Processor, ProcessorError, ProcessorRollbackError}
   alias Gno.{Commit, EffectiveChangeset}
 
+  import ExUnit.CaptureLog
+
   describe "new/1" do
     test "creates a new processor with the given service" do
       service = Manifest.service!()
@@ -125,13 +127,20 @@ defmodule Gno.Commit.ProcessorTest do
         commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("first"),
+            Gno.CommitLogger.new!(),
             TestStateFlowMiddleware.new!("second")
           ]
         )
 
       description = EX.S1 |> EX.p1(EX.O1)
 
-      assert {:ok, result} = Processor.execute(processor, add: description)
+      {result, log} =
+        with_log(fn ->
+          assert {:ok, result} = Processor.execute(processor, add: description)
+          result
+        end)
+
+      assert log =~ "Commit operation completed successfully"
 
       assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(result).graph,
                             RDF.List.from([

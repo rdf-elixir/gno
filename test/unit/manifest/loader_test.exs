@@ -191,6 +191,7 @@ defmodule Gno.Manifest.LoaderTest do
                 service: %Gno.Service{
                   commit_operation: %TestCommitOperation{
                     middlewares: [
+                      %Gno.CommitLogger{log_level: "info", log_states: ["all"]},
                       %TestStateFlowMiddleware{label: "first"},
                       %TestStateFlowMiddleware{label: "second"}
                     ]
@@ -226,7 +227,8 @@ defmodule Gno.Manifest.LoaderTest do
                 service: %Gno.Service{
                   commit_operation: %Gno.CommitOperation{
                     middlewares: [
-                      %TestStateFlowMiddleware{label: "default"}
+                      %TestStateFlowMiddleware{label: "default"},
+                      %Gno.CommitLogger{log_level: "info"}
                     ]
                   }
                 }

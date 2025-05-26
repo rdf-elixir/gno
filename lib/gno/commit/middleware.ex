@@ -58,7 +58,7 @@ defmodule Gno.CommitMiddleware do
 
   ## Example
 
-      iex> Gno.CommitMiddleware.type?(TestStateFlowMiddleware)
+      iex> Gno.CommitMiddleware.type?(Gno.CommitLogger)
       true
 
       iex> Gno.CommitMiddleware.type?(Gno.Commit)

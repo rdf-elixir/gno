@@ -6,6 +6,7 @@ ex:Service a gno:Service
         ; gno:serviceCommitOperation [
                               a ex:TestCommitOperation
                               ; gno:commitMiddleware (
+                                [ a gno:CommitLogger ; gno:commitLogStates "all" ]
                                 [ a ex:TestStateFlowMiddleware ; rdfs:label "first" ]
                                 [ a ex:TestStateFlowMiddleware ; rdfs:label "second" ]
                               )
