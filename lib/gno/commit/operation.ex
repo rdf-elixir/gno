@@ -31,7 +31,7 @@ defmodule Gno.CommitOperation do
 
   @impl true
   def init(processor) do
-    with {:ok, changeset} <- init_changeset(processor.input_changes) do
+    with {:ok, changeset} <- init_changeset(processor.input) do
       {:ok, %Processor{processor | changeset: changeset, commit_id: init_commit_id()}}
     end
   end

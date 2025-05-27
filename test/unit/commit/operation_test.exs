@@ -21,7 +21,7 @@ defmodule Gno.CommitOperationTest do
       changeset = EffectiveChangeset.new!(add: EX.S |> EX.p(EX.O))
 
       assert {:ok, %Processor{changeset: ^changeset}} =
-               %{processor | input_changes: changeset}
+               %{processor | input: changeset}
                |> CommitOperation.init()
     end
 
@@ -29,7 +29,7 @@ defmodule Gno.CommitOperationTest do
       changeset = Changeset.new!(add: EX.S |> EX.p(EX.O))
 
       assert {:ok, %Processor{changeset: %Changeset{}}} =
-               %{processor | input_changes: changeset}
+               %{processor | input: changeset}
                |> CommitOperation.init()
     end
 
@@ -37,7 +37,7 @@ defmodule Gno.CommitOperationTest do
       changes = [add: EX.S |> EX.p(EX.O)]
 
       assert {:ok, %Processor{changeset: %Changeset{}}} =
-               %{processor | input_changes: changes}
+               %{processor | input: changes}
                |> CommitOperation.init()
     end
 
@@ -45,7 +45,7 @@ defmodule Gno.CommitOperationTest do
       changes = [add: EX.S |> EX.p(EX.O)]
 
       assert {:ok, %Processor{commit_id: commit_id}} =
-               %{processor | input_changes: changes}
+               %{processor | input: changes}
                |> CommitOperation.init()
 
       assert %RDF.BlankNode{} = commit_id

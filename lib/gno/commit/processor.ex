@@ -73,7 +73,7 @@ defmodule Gno.Commit.Processor do
 
   defstruct service: nil,
             state: nil,
-            input_changes: nil,
+            input: nil,
             input_options: nil,
             middlewares: [],
             changeset: nil,
@@ -106,7 +106,7 @@ defmodule Gno.Commit.Processor do
   @type t :: %__MODULE__{
           service: Service.t(),
           state: state(),
-          input_changes: any(),
+          input: any(),
           input_options: keyword(),
           middlewares: [CommitMiddleware.t()],
           changeset: Gno.Changeset.t(),
@@ -148,8 +148,8 @@ defmodule Gno.Commit.Processor do
 
   def new!(service), do: bang!(&new/1, [service])
 
-  def execute(%__MODULE__{} = processor, changes, opts \\ []) do
-    processor = %{processor | input_changes: changes, input_options: opts}
+  def execute(%__MODULE__{} = processor, input, opts \\ []) do
+    processor = %{processor | input: input, input_options: opts}
 
     # Pre-commit phase
     with {:ok, processor} <- execute_activity(processor, :init, &operation_type(&1).init(&1)),
