@@ -37,7 +37,7 @@ defmodule Gno.Manifest.TypeTest do
                     __id__: ~I<http://example.com/Repository>,
                     dataset: %Gno.Dataset{__id__: ~I<http://example.com/Dataset>}
                   },
-                  commit_operation: Gno.CommitOperation.default()
+                  commit_operation: Gno.Service.default_commit_operation()
                 }
               }}
   end

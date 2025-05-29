@@ -3,8 +3,7 @@ defmodule TestCommitOperation do
   A test implementation of a custom CommitOperation for testing purposes.
   """
 
-  @behaviour Gno.CommitOperation.Type
-  use Grax.Schema
+  use Gno.CommitOperation.Type
 
   alias Gno.Commit.Processor
   alias RDF.Graph
@@ -13,25 +12,10 @@ defmodule TestCommitOperation do
 
   import Gno.TestFactories
 
-  schema EX.TestCommitOperation < Gno.CommitOperation do
+  def_commit_operation EX.TestCommitOperation do
     property custom_property: EX.customProperty(),
              type: :string,
              default: "test"
-  end
-
-  @impl true
-  def new(id, args \\ []) do
-    build(id, args)
-  end
-
-  def new!(id, args \\ []), do: Gno.Utils.bang!(&new/2, [id, args])
-
-  @impl true
-  def default do
-    case new(RDF.bnode("test-custom-commit-operation"), custom_property: "default-test") do
-      {:ok, operation} -> operation
-      {:error, error} -> raise error
-    end
   end
 
   @impl true

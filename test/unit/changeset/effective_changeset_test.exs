@@ -316,6 +316,9 @@ defmodule Gno.EffectiveChangesetTest do
                add: graph([2]),
                remove: graph([1])
              }
+
+    assert EffectiveChangeset.empty() |> EffectiveChangeset.invert() ==
+             EffectiveChangeset.empty()
   end
 
   test "limit/3" do

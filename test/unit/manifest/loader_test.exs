@@ -233,6 +233,24 @@ defmodule Gno.Manifest.LoaderTest do
                   }
                 }
               }} = Loader.load(Gno.Manifest, load_path: load_path)
+
+      load_path = [
+        TestData.manifest("single_file.ttl"),
+        TestData.manifest("commit_config/custom_commit_operation_with_middleware_as_class.ttl")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                load_path: ^load_path,
+                service: %Gno.Service{
+                  commit_operation: %TestCommitOperation{
+                    middlewares: [
+                      %TestStateFlowMiddleware{label: "default"},
+                      %Gno.CommitLogger{log_level: "info"}
+                    ]
+                  }
+                }
+              }} = Loader.load(Gno.Manifest, load_path: load_path)
     end
   end
 end

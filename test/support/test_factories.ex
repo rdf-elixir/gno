@@ -6,7 +6,7 @@ defmodule Gno.TestFactories do
   use RDF
 
   alias RDF.Graph
-  alias Gno.{Changeset, EffectiveChangeset, Commit}
+  alias Gno.{Changeset, EffectiveChangeset, Commit, CommitOperation}
 
   alias Gno.TestNamespaces.EX
   @compile {:no_warn_undefined, Gno.TestNamespaces.EX}
@@ -112,13 +112,12 @@ defmodule Gno.TestFactories do
   def commit_operation(type, attrs \\ [])
 
   def commit_operation(attrs, []) when is_list(attrs) do
-    attrs
-    |> Keyword.get(:commit_operation, TestCommitOperation)
-    |> commit_operation(attrs)
+    {type, attrs} = Keyword.pop(attrs, :commit_operation, CommitOperation)
+    commit_operation(type, attrs)
   end
 
   def commit_operation(type, attrs) when is_atom(type) do
-    commit_operation(type.default(), attrs)
+    commit_operation(Gno.Service.default_commit_operation(type), attrs)
   end
 
   def commit_operation(%_{} = commit_operation, attrs) do
@@ -131,5 +130,11 @@ defmodule Gno.TestFactories do
 
   def commit_processor(attrs \\ []) do
     Commit.Processor.new!(service(attrs))
+  end
+
+  def test_commit_processor(attrs \\ []) do
+    attrs
+    |> Keyword.put(:commit_operation, TestCommitOperation)
+    |> commit_processor()
   end
 end

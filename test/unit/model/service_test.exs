@@ -5,6 +5,18 @@ defmodule Gno.ServiceTest do
 
   alias Gno.Store.SPARQL.Operation
 
+  describe "new/1" do
+    test "with default commit operation" do
+      assert {:ok, %Gno.Service{commit_operation: %Gno.CommitOperation{}}} =
+               Service.new()
+    end
+
+    test "with commit operation as class" do
+      assert {:ok, %Gno.Service{commit_operation: %TestCommitOperation{}}} =
+               Service.new(commit_operation: EX.TestCommitOperation)
+    end
+  end
+
   describe "handle/4" do
     test "default graph" do
       assert EX.S

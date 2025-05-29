@@ -10,24 +10,52 @@ defmodule Gno.CommitOperation do
 
   schema Gno.CommitOperation do
     link middlewares: Gno.commitMiddleware(), type: ordered_list_of(CommitMiddleware)
+
+    property on_no_effective_changes: Gno.commitNoEffectiveChangesetHandling(),
+             type: :string,
+             default: Application.compile_env(:gno, :commit_on_no_effective_changes, "error")
   end
 
   @behaviour Gno.CommitOperation.Type
 
-  @impl true
-  def new(id, args \\ []) do
-    build(id, args)
+  def new(attrs \\ []) do
+    {id, attrs} = Keyword.pop(attrs, :id, RDF.bnode())
+    build(id, attrs)
   end
 
-  def new!(id, args \\ []), do: bang!(&new/2, [id, args])
+  def new!(attrs \\ []), do: bang!(&new/1, [attrs])
 
-  @impl true
-  def default() do
-    case new(RDF.bnode("commit-operation")) do
-      {:ok, operation} -> operation
-      {:error, error} -> raise error
+  def build(id, attrs \\ []) do
+    with {:ok, commit_operation} <- super(id, attrs) do
+      init_middlewares(commit_operation)
     end
   end
+
+  @doc false
+  def on_load(commit_operation, _graph, _opts) do
+    init_middlewares(commit_operation)
+  end
+
+  @doc false
+  def init_middlewares(commit_operation) do
+    with {:ok, middlewares} <- map_while_ok(commit_operation.middlewares, &init_middleware/1) do
+      {:ok, %{commit_operation | middlewares: middlewares}}
+    end
+  end
+
+  defp init_middleware(%RDF.IRI{} = middleware_class) do
+    if middleware_type = CommitMiddleware.type(middleware_class) do
+      middleware_type.new()
+    else
+      {:error, "invalid commit middleware: #{inspect(middleware_class)}"}
+    end
+  end
+
+  defp init_middleware(%CommitMiddleware{} = commit_operation) do
+    init_middleware(commit_operation.__id__)
+  end
+
+  defp init_middleware(middleware), do: {:ok, middleware}
 
   @impl true
   def init(processor) do
@@ -42,6 +70,17 @@ defmodule Gno.CommitOperation do
   defp init_changeset(changes), do: Changeset.new(changes)
 
   @impl true
+  def handle_empty_changeset(_processor, "error", changeset), do: {:error, changeset}
+  def handle_empty_changeset(processor, "skip", _changeset), do: {:skip_transaction, processor}
+
+  def handle_empty_changeset(processor, "proceed", _changeset) do
+    {:ok, %Processor{processor | effective_changeset: EffectiveChangeset.empty()}}
+  end
+
+  def handle_empty_changeset(_processor, invalid, _changeset),
+    do: {:error, "Invalid on_no_effective_changes value: #{invalid}"}
+
+  @impl true
   def commit_id(processor) do
     processor.commit_id
   end
@@ -54,28 +93,15 @@ defmodule Gno.CommitOperation do
   end
 
   @impl true
+  def result(%Processor{effective_changeset: %Gno.NoEffectiveChanges{} = changeset}) do
+    {:ok, changeset}
+  end
+
   def result(processor) do
     with {:ok, commit} <- Commit.load(processor.metadata, Processor.commit_id(processor)) do
       Grax.put(commit, :changeset, processor.effective_changeset)
     end
   end
-
-  @doc false
-  def on_load(operation, _graph, _opts) do
-    with {:ok, middlewares} <- map_while_ok(operation.middlewares, &resolve_middleware/1) do
-      {:ok, %{operation | middlewares: middlewares}}
-    end
-  end
-
-  defp resolve_middleware(%CommitMiddleware{} = middleware) do
-    if middleware_type = CommitMiddleware.type(middleware.__id__) do
-      middleware_type.new()
-    else
-      {:error, "invalid commit middleware: #{inspect(middleware)}"}
-    end
-  end
-
-  defp resolve_middleware(middleware), do: {:ok, middleware}
 
   @doc """
   Checks if the given `module` is a `Gno.CommitOperation.Type`.

@@ -151,7 +151,17 @@ defmodule Gno.Commit.Processor do
   def execute(%__MODULE__{} = processor, input, opts \\ []) do
     processor = %{processor | input: input, input_options: opts}
 
-    # Pre-commit phase
+    with {:ok, processor} <-
+           (case pre_commit(processor) do
+              {:skip_transaction, processor} -> {:ok, processor}
+              {:ok, processor} -> commit(processor)
+              {:error, _} = error -> error
+            end) do
+      post_commit(processor)
+    end
+  end
+
+  defp pre_commit(processor) do
     with {:ok, processor} <- execute_activity(processor, :init, &operation_type(&1).init(&1)),
          {:ok, processor} <-
            execute_activity(processor, :preparation, fn processor ->
@@ -159,21 +169,27 @@ defmodule Gno.Commit.Processor do
                   {:ok, processor} <- add_metadata(processor) do
                {:ok, processor}
              end
-           end),
+           end) do
+      handle_empty_changeset(processor)
+    end
+  end
 
-         # Transaction phase
-         {:ok, processor} <- execute_activity(processor, :start_transaction),
+  defp commit(processor) do
+    with {:ok, processor} <- execute_activity(processor, :start_transaction),
          {:ok, processor} <- execute_activity(processor, :apply_changes, &apply_changes/1),
-         {:ok, processor} <- execute_activity(processor, :end_transaction),
+         {:ok, processor} <- execute_activity(processor, :end_transaction) do
+      {:ok, processor}
+    end
+  end
 
-         # Post-commit phase
-         {:ok, processor} <- execute_activity(processor, :post_commit) do
+  defp post_commit(processor) do
+    with {:ok, processor} <- execute_activity(processor, :post_commit) do
       operation_type(processor).result(processor)
     end
   end
 
   defp execute_activity(processor, activity, activity_fn \\ nil) do
-    {executing_state, completed_state} = transition(processor, activity)
+    {executing_state, completed_state} = @activity_states[activity]
 
     case run_middleware(processor, executing_state) do
       {:ok, processor} ->
@@ -194,23 +210,6 @@ defmodule Gno.Commit.Processor do
 
   defp apply_activity_fun(processor, nil), do: {:ok, processor}
   defp apply_activity_fun(processor, activity_fn), do: activity_fn.(processor)
-
-  defp transition(processor, event) do
-    case validate_transition(processor.state, event) do
-      :ok -> @activity_states[event]
-      {:error, error} -> raise error
-    end
-  end
-
-  defp validate_transition(nil, :init), do: :ok
-  defp validate_transition(:initialized, :preparation), do: :ok
-  defp validate_transition(:prepared, :start_transaction), do: :ok
-  defp validate_transition(:transaction_started, :apply_changes), do: :ok
-  defp validate_transition(:changes_applied, :end_transaction), do: :ok
-  defp validate_transition(:transaction_ended, :post_commit), do: :ok
-
-  defp validate_transition(current, event),
-    do: {:error, "Invalid state transition from #{current} with event #{event}"}
 
   defp run_middleware(processor, state) do
     Enum.reduce(processor.middlewares, {:ok, processor, []}, fn
@@ -261,6 +260,22 @@ defmodule Gno.Commit.Processor do
       {:ok, %__MODULE__{processor | effective_changeset: effective_changeset}}
     end
   end
+
+  defp handle_empty_changeset(
+         %__MODULE__{effective_changeset: %Gno.NoEffectiveChanges{} = changeset} = processor
+       ) do
+    operation_type(processor).handle_empty_changeset(
+      processor,
+      Keyword.get(
+        processor.input_options,
+        :on_no_effective_changes,
+        operation(processor).on_no_effective_changes
+      ),
+      changeset
+    )
+  end
+
+  defp handle_empty_changeset(processor), do: {:ok, processor}
 
   defp add_metadata(processor) do
     operation_type(processor).add_metadata(processor)

@@ -16,24 +16,18 @@ defmodule Gno.Commit.ProcessorTest do
   end
 
   describe "execute/3 (with default CommitOperation)" do
-    setup do
-      service = Manifest.service!()
-      {:ok, processor} = Processor.new(service)
-      %{processor: processor, service: service}
-    end
-
-    test "processes a simple add changeset", %{processor: processor} do
+    test "processes a simple add changeset" do
       description = EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2)
       expected_changeset = Gno.EffectiveChangeset.new!(add: description)
 
       assert {:ok, %Gno.Commit{changeset: ^expected_changeset}} =
-               Processor.execute(processor, add: description)
+               Processor.execute(commit_processor(), add: description)
 
       assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
                graph(description)
     end
 
-    test "processes an update changeset", %{processor: processor} do
+    test "processes an update changeset" do
       Gno.insert_data!(EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2))
 
       update_description = EX.S1 |> EX.p1(EX.O1) |> EX.p2("updated value")
@@ -45,7 +39,7 @@ defmodule Gno.Commit.ProcessorTest do
         )
 
       assert {:ok, %Gno.Commit{changeset: result_changeset}} =
-               Processor.execute(processor, update: update_description)
+               Processor.execute(commit_processor(), update: update_description)
 
       assert without_prefixes(result_changeset) == expected_changeset
 
@@ -55,14 +49,14 @@ defmodule Gno.Commit.ProcessorTest do
                expected_result
     end
 
-    test "processes a remove changeset", %{processor: processor} do
+    test "processes a remove changeset" do
       Gno.insert_data!(EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2))
 
       remove_description = EX.S1 |> EX.p2(EX.O2)
       expected_changeset = Gno.EffectiveChangeset.new!(remove: remove_description)
 
       assert {:ok, %Gno.Commit{changeset: result_changeset}} =
-               Processor.execute(processor, remove: remove_description)
+               Processor.execute(commit_processor(), remove: remove_description)
 
       assert without_prefixes(result_changeset) == expected_changeset
 
@@ -74,7 +68,7 @@ defmodule Gno.Commit.ProcessorTest do
   end
 
   test "execute/3 with custom CommitOperation" do
-    service = %{Manifest.service!() | commit_operation: TestCommitOperation.default()}
+    service = %{Manifest.service!() | commit_operation: TestCommitOperation.build!(RDF.bnode())}
     processor = Processor.new!(service)
     description = EX.S1 |> EX.p1(EX.O1)
 
@@ -93,9 +87,47 @@ defmodule Gno.Commit.ProcessorTest do
     assert commit.time == TestCommitOperation.test_time()
   end
 
+  describe "execute/3 handling of NoEffectiveChanges" do
+    test ":error handling" do
+      Gno.insert_data!(graph())
+
+      assert {:error, %Gno.NoEffectiveChanges{}} =
+               Processor.execute(commit_processor(), add: graph())
+    end
+
+    test ":skip handling" do
+      Gno.insert_data!(graph())
+
+      assert {:ok, %Gno.NoEffectiveChanges{}} =
+               Processor.execute(commit_processor(on_no_effective_changes: "skip"), add: graph())
+    end
+
+    test ":proceed handling" do
+      Gno.insert_data!(graph())
+
+      assert {:ok, %Commit{changeset: %Gno.EffectiveChangeset{} = changeset}} =
+               Processor.execute(commit_processor(on_no_effective_changes: "proceed"),
+                 add: graph()
+               )
+
+      assert EffectiveChangeset.empty?(changeset)
+    end
+
+    test "overwriting with opts" do
+      Gno.insert_data!(graph())
+
+      assert {:ok, %Commit{changeset: %Gno.EffectiveChangeset{}}} =
+               Processor.execute(
+                 commit_processor(),
+                 [add: graph()],
+                 on_no_effective_changes: "proceed"
+               )
+    end
+  end
+
   describe "state flow with TestStateFlowMiddleware" do
     test "records state transitions for add operation" do
-      processor = commit_processor(middlewares: [TestStateFlowMiddleware.new!("test")])
+      processor = test_commit_processor(middlewares: [TestStateFlowMiddleware.new!("test")])
       description = EX.S1 |> EX.p1(EX.O1)
 
       assert {:ok, result} = Processor.execute(processor, add: description)
@@ -124,7 +156,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles multiple middlewares in order" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("first"),
             Gno.CommitLogger.new!(),
@@ -178,7 +210,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles rollback on error" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [TestStateFlowMiddleware.new!("test", fail_on_state: :preparing)]
         )
 
@@ -201,7 +233,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles exception in middleware" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("test",
               fail_on_state: :preparing,
@@ -229,7 +261,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles error in post-commit phase (no rollback)" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("test", fail_on_state: :executing_post_commit)
           ]
@@ -263,7 +295,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles error during transaction phase" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("test", fail_on_state: :ending_transaction)
           ]
@@ -294,7 +326,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles rollback with middlewares in different states" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("first"),
             TestStateFlowMiddleware.new!("second", fail_on_state: :prepared),
@@ -327,7 +359,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles error during rollback" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("test", fail_on_state: {:rollback, :changes_applied})
           ]
@@ -348,7 +380,7 @@ defmodule Gno.Commit.ProcessorTest do
 
     test "handles rollback in all middlewares even if one fails" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("first",
               fail_on_state: {:rollback, :preparing},
@@ -388,45 +420,39 @@ defmodule Gno.Commit.ProcessorTest do
   end
 
   describe "update_metadata/2" do
-    setup do
-      %{processor: Processor.new!(Manifest.service!())}
-    end
-
-    test "with a graph", %{processor: processor} do
+    test "with a graph" do
       metadata = Graph.new({EX.S, EX.p(), EX.O})
 
       assert {:ok, %Processor{metadata: ^metadata}} =
-               Processor.update_metadata(processor, metadata)
+               Processor.update_metadata(commit_processor(), metadata)
     end
 
-    test "with a function", %{processor: processor} do
+    test "with a function" do
       update_fn = fn graph -> Graph.add(graph, {EX.S, EX.p(), EX.O}) end
       expected = Graph.new({EX.S, EX.p(), EX.O})
 
       assert {:ok, %Processor{metadata: ^expected}} =
-               Processor.update_metadata(processor, update_fn)
+               Processor.update_metadata(commit_processor(), update_fn)
     end
 
-    test "with a function returning {:ok, graph}", %{processor: processor} do
+    test "with a function returning {:ok, graph}" do
       update_fn = fn graph -> {:ok, Graph.add(graph, {EX.S, EX.p(), EX.O})} end
       expected = Graph.new({EX.S, EX.p(), EX.O})
 
       assert {:ok, %Processor{metadata: ^expected}} =
-               Processor.update_metadata(processor, update_fn)
+               Processor.update_metadata(commit_processor(), update_fn)
     end
 
-    test "with a function returning error", %{processor: processor} do
+    test "with a function returning error" do
       update_fn = fn _graph -> {:error, "test error"} end
 
-      assert {:error, "test error"} = Processor.update_metadata(processor, update_fn)
+      assert {:error, "test error"} = Processor.update_metadata(commit_processor(), update_fn)
     end
   end
 
   describe "assign/3" do
     test "adds a value to the assigns map" do
-      processor = Processor.new!(Manifest.service!())
-
-      updated = Processor.assign(processor, :test_key, "test_value")
+      updated = Processor.assign(commit_processor(), :test_key, "test_value")
       assert updated.assigns.test_key == "test_value"
     end
   end

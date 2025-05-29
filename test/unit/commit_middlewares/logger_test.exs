@@ -19,38 +19,35 @@ defmodule Gno.CommitLoggerTest do
   end
 
   describe "handle_state/3" do
-    setup do
-      %{processor: Processor.new!(Manifest.service!())}
-    end
-
-    test "logs initializing state", %{processor: processor} do
+    test "logs initializing state" do
       middleware = CommitLogger.new!(log_states: ["initializing"])
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = CommitLogger.handle_state(:initializing, middleware, processor)
+          assert {:ok, _} =
+                   CommitLogger.handle_state(:initializing, middleware, commit_processor())
         end)
 
       assert log =~ "Commit operation started"
     end
 
-    test "logs completed state", %{processor: processor} do
+    test "logs completed state" do
       middleware = CommitLogger.new!(log_states: ["completed"])
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = CommitLogger.handle_state(:completed, middleware, processor)
+          assert {:ok, _} = CommitLogger.handle_state(:completed, middleware, commit_processor())
         end)
 
       assert log =~ "Commit operation completed successfully"
     end
 
-    test "logs completed state with changeset details", %{processor: processor} do
+    test "logs completed state with changeset details" do
       middleware =
         CommitLogger.new!(log_states: ["completed"], log_changes: true, log_level: "debug")
 
       changeset = Gno.EffectiveChangeset.new!(add: EX.S1 |> EX.p1(EX.O1))
-      processor = %{processor | effective_changeset: changeset}
+      processor = %{commit_processor() | effective_changeset: changeset}
 
       log =
         capture_log(fn ->
@@ -62,12 +59,12 @@ defmodule Gno.CommitLoggerTest do
       assert log =~ "http://example.com/S1"
     end
 
-    test "logs changeset and metadata", %{processor: processor} do
+    test "logs changeset and metadata" do
       middleware =
         CommitLogger.new!(log_states: ["prepared"], log_metadata: true, log_level: "debug")
 
       metadata = RDF.Graph.new({EX.S, EX.p(), EX.O})
-      processor = %{processor | metadata: metadata}
+      processor = %{commit_processor() | metadata: metadata}
 
       log =
         capture_log(fn ->
@@ -80,20 +77,20 @@ defmodule Gno.CommitLoggerTest do
       assert log =~ "Commit operation prepared"
     end
 
-    test "does not log states not in log_states", %{processor: processor} do
+    test "does not log states not in log_states" do
       middleware = CommitLogger.new!(log_states: ["initializing"])
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = CommitLogger.handle_state(:preparing, middleware, processor)
+          assert {:ok, _} = CommitLogger.handle_state(:preparing, middleware, commit_processor())
         end)
 
       assert log == ""
     end
 
-    test "processes log entries from processor", %{processor: processor} do
+    test "processes log entries from processor" do
       middleware = CommitLogger.new!()
-      processor = CommitLogger.log(processor, "Test log entry", level: "warning")
+      processor = CommitLogger.log(commit_processor(), "Test log entry", level: "warning")
 
       log =
         capture_log(fn ->
@@ -108,25 +105,21 @@ defmodule Gno.CommitLoggerTest do
   end
 
   describe "rollback/2" do
-    setup do
-      %{processor: Processor.new!(Manifest.service!())}
-    end
-
-    test "logs rollback operation", %{processor: processor} do
+    test "logs rollback operation" do
       middleware = CommitLogger.new!()
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = CommitLogger.rollback(middleware, processor)
+          assert {:ok, _} = CommitLogger.rollback(middleware, commit_processor())
         end)
 
       assert log =~ "Rolling back commit operation"
       assert log =~ "[warning]"
     end
 
-    test "processes log entries during rollback", %{processor: processor} do
+    test "processes log entries during rollback" do
       middleware = CommitLogger.new!()
-      processor = CommitLogger.log(processor, "Test rollback log entry", level: "error")
+      processor = CommitLogger.log(commit_processor(), "Test rollback log entry", level: "error")
 
       log =
         capture_log(fn ->
@@ -140,30 +133,26 @@ defmodule Gno.CommitLoggerTest do
   end
 
   describe "log/3" do
-    setup do
-      %{processor: Processor.new!(Manifest.service!())}
-    end
-
-    test "adds log entry to processor assigns", %{processor: processor} do
-      updated_processor = CommitLogger.log(processor, "Test message")
+    test "adds log entry to processor assigns" do
+      updated_processor = CommitLogger.log(commit_processor(), "Test message")
 
       assert [%{message: "Test message", level: nil, metadata: []} | _] =
                updated_processor.assigns[:log]
     end
 
-    test "adds log entry with custom level", %{processor: processor} do
+    test "adds log entry with custom level" do
       metadata = [user: "test"]
 
       updated_processor =
-        CommitLogger.log(processor, "Test message", level: "error", metadata: metadata)
+        CommitLogger.log(commit_processor(), "Test message", level: "error", metadata: metadata)
 
       assert [%{message: "Test message", level: "error", metadata: ^metadata} | _] =
                updated_processor.assigns[:log]
     end
 
-    test "preserves existing log entries", %{processor: processor} do
+    test "preserves existing log entries" do
       processor =
-        processor
+        commit_processor()
         |> CommitLogger.log("First message")
         |> CommitLogger.log("Second message")
 
@@ -173,7 +162,7 @@ defmodule Gno.CommitLoggerTest do
 
   describe "integration with Processor" do
     test "logs commit operation states" do
-      processor = commit_processor(middlewares: [CommitLogger.new!(log_states: ["all"])])
+      processor = test_commit_processor(middlewares: [CommitLogger.new!(log_states: ["all"])])
 
       log =
         capture_log(fn ->
@@ -187,7 +176,7 @@ defmodule Gno.CommitLoggerTest do
 
     test "logs error during commit operation" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("test", fail_on_state: :preparing),
             CommitLogger.new!(log_states: ["initializing"])
@@ -205,7 +194,7 @@ defmodule Gno.CommitLoggerTest do
 
     test "logs prepared changeset and metadata when enabled" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             CommitLogger.new!(
               log_changes: true,
@@ -231,7 +220,7 @@ defmodule Gno.CommitLoggerTest do
 
     test "logs custom messages during commit" do
       processor =
-        commit_processor(
+        test_commit_processor(
           middlewares: [
             TestStateFlowMiddleware.new!("test", custom_log_message: "Custom log message"),
             CommitLogger.new!()

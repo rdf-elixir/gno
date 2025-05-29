@@ -184,6 +184,17 @@ gno:CommitOperation a rdfs:Class
         ; rdfs:range  gno:CommitMiddleware
     .
 
+    gno:commitNoEffectiveChangesetHandling a rdf:Property
+        ; rdfs:domain gno:CommitOperation
+        ; rdfs:range  xsd:string
+        ; rdfs:label "commit no effective changeset handling"
+        ; rdfs:comment "Defines how the commit operation should handle the case that no effective changes result from the changeset. The value MUST be one of the following: 'skip', 'proceed' or 'error'."
+    .
+
+##########################################################################
+# CommitMiddleware
+##########################################################################
+
 gno:CommitMiddleware a rdfs:Class
         ; rdfs:label "CommitMiddleware"
         ; rdfs:comment "Represents a middleware component of a commit operation."
