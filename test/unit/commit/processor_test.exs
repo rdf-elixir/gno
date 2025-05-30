@@ -419,6 +419,31 @@ defmodule Gno.Commit.ProcessorTest do
     end
   end
 
+  describe "update_commit_id/2" do
+    test "updates the commit id and renames the commit id in the metadata" do
+      processor = %{commit_processor() | commit_id: RDF.iri(EX.initialCommitId())}
+
+      {:ok, processor} =
+        Processor.update_metadata(processor, fn metadata ->
+          Graph.add(metadata, [
+            {Processor.commit_id(processor), EX.test(), "test"},
+            {EX.S, EX.test(), Processor.commit_id(processor)}
+          ])
+        end)
+
+      new_commit_id = RDF.iri(EX.finalCommitId())
+
+      assert %Processor{commit_id: ^new_commit_id} =
+               processor =
+               Processor.update_commit_id(processor, new_commit_id)
+
+      assert Graph.include?(processor.metadata, [
+               {new_commit_id, EX.test(), "test"},
+               {EX.S, EX.test(), new_commit_id}
+             ])
+    end
+  end
+
   describe "update_metadata/2" do
     test "with a graph" do
       metadata = Graph.new({EX.S, EX.p(), EX.O})

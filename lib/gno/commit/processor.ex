@@ -369,6 +369,18 @@ defmodule Gno.Commit.Processor do
 
   def commit_id(processor), do: operation_type(processor).commit_id(processor)
 
+  def update_commit_id(%__MODULE__{commit_id: nil} = processor, commit_id) do
+    %{processor | commit_id: commit_id}
+  end
+
+  def update_commit_id(processor, commit_id) do
+    %{
+      processor
+      | commit_id: commit_id,
+        metadata: Graph.rename_resource(processor.metadata, processor.commit_id, commit_id)
+    }
+  end
+
   def update_metadata(%__MODULE__{} = processor, %Graph{} = metadata) do
     {:ok, %__MODULE__{processor | metadata: metadata}}
   end
