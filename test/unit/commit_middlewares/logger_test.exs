@@ -166,7 +166,7 @@ defmodule Gno.CommitLoggerTest do
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = Processor.execute(processor, add: graph())
+          assert {:ok, _, _} = Processor.execute(processor, add: graph())
         end)
 
       assert log =~ "Commit operation started"
@@ -208,7 +208,7 @@ defmodule Gno.CommitLoggerTest do
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = Processor.execute(processor, add: description)
+          assert {:ok, _, _} = Processor.execute(processor, add: description)
         end)
 
       assert log =~ "Commit operation completed successfully"
@@ -229,7 +229,7 @@ defmodule Gno.CommitLoggerTest do
 
       log =
         capture_log(fn ->
-          assert {:ok, _} = Processor.execute(processor, add: graph())
+          assert {:ok, _, _} = Processor.execute(processor, add: graph())
         end)
 
       assert log =~ "[info] Custom log message"

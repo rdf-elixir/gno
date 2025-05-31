@@ -621,8 +621,9 @@ defmodule Gno do
 
   def commit(changes, opts \\ []) do
     with {:ok, service} <- service(opts),
-         {:ok, processor} <- Gno.Commit.Processor.new(service) do
-      Gno.Commit.Processor.execute(processor, changes, opts)
+         {:ok, processor} <- Gno.Commit.Processor.new(service),
+         {:ok, commit, _processor} <- Gno.Commit.Processor.execute(processor, changes, opts) do
+      {:ok, commit}
     end
   end
 end

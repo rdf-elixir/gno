@@ -20,7 +20,7 @@ defmodule Gno.Commit.ProcessorTest do
       description = EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2)
       expected_changeset = Gno.EffectiveChangeset.new!(add: description)
 
-      assert {:ok, %Gno.Commit{changeset: ^expected_changeset}} =
+      assert {:ok, %Gno.Commit{changeset: ^expected_changeset}, %Processor{state: :completed}} =
                Processor.execute(commit_processor(), add: description)
 
       assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
@@ -38,7 +38,7 @@ defmodule Gno.Commit.ProcessorTest do
           overwrite: EX.S1 |> EX.p2(EX.O2)
         )
 
-      assert {:ok, %Gno.Commit{changeset: result_changeset}} =
+      assert {:ok, %Gno.Commit{changeset: result_changeset}, %Processor{}} =
                Processor.execute(commit_processor(), update: update_description)
 
       assert without_prefixes(result_changeset) == expected_changeset
@@ -55,7 +55,7 @@ defmodule Gno.Commit.ProcessorTest do
       remove_description = EX.S1 |> EX.p2(EX.O2)
       expected_changeset = Gno.EffectiveChangeset.new!(remove: remove_description)
 
-      assert {:ok, %Gno.Commit{changeset: result_changeset}} =
+      assert {:ok, %Gno.Commit{changeset: result_changeset}, %Processor{}} =
                Processor.execute(commit_processor(), remove: remove_description)
 
       assert without_prefixes(result_changeset) == expected_changeset
@@ -72,7 +72,11 @@ defmodule Gno.Commit.ProcessorTest do
     processor = Processor.new!(service)
     description = EX.S1 |> EX.p1(EX.O1)
 
-    assert {:ok, %Processor{} = processor} = Processor.execute(processor, add: description)
+    assert {:ok, %Commit{} = commit, %Processor{} = processor} =
+             Processor.execute(processor, add: description)
+
+    assert commit.changeset == EffectiveChangeset.new!(add: description)
+    assert commit.time == TestCommitOperation.test_time()
 
     assert processor.state == :completed
     assert processor.assigns[:custom_init]
@@ -81,10 +85,6 @@ defmodule Gno.Commit.ProcessorTest do
              processor.metadata,
              {TestCommitOperation.commit_id(processor), EX.customMetadata(), "test"}
            )
-
-    assert %Commit{} = commit = processor.assigns[:commit]
-    assert commit.changeset == EffectiveChangeset.new!(add: description)
-    assert commit.time == TestCommitOperation.test_time()
   end
 
   describe "execute/3 handling of NoEffectiveChanges" do
@@ -98,14 +98,15 @@ defmodule Gno.Commit.ProcessorTest do
     test ":skip handling" do
       Gno.insert_data!(graph())
 
-      assert {:ok, %Gno.NoEffectiveChanges{}} =
+      assert {:ok, %Gno.NoEffectiveChanges{}, %Processor{state: :completed}} =
                Processor.execute(commit_processor(on_no_effective_changes: "skip"), add: graph())
     end
 
     test ":proceed handling" do
       Gno.insert_data!(graph())
 
-      assert {:ok, %Commit{changeset: %Gno.EffectiveChangeset{} = changeset}} =
+      assert {:ok, %Commit{changeset: %Gno.EffectiveChangeset{} = changeset},
+              %Processor{state: :completed}} =
                Processor.execute(commit_processor(on_no_effective_changes: "proceed"),
                  add: graph()
                )
@@ -116,7 +117,7 @@ defmodule Gno.Commit.ProcessorTest do
     test "overwriting with opts" do
       Gno.insert_data!(graph())
 
-      assert {:ok, %Commit{changeset: %Gno.EffectiveChangeset{}}} =
+      assert {:ok, %Commit{changeset: %Gno.EffectiveChangeset{}}, %Processor{state: :completed}} =
                Processor.execute(
                  commit_processor(),
                  [add: graph()],
@@ -130,9 +131,9 @@ defmodule Gno.Commit.ProcessorTest do
       processor = test_commit_processor(middlewares: [TestStateFlowMiddleware.new!("test")])
       description = EX.S1 |> EX.p1(EX.O1)
 
-      assert {:ok, result} = Processor.execute(processor, add: description)
+      assert {:ok, _commit, processor} = Processor.execute(processor, add: description)
 
-      assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(result).graph,
+      assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(processor).graph,
                             RDF.List.from([
                               "completed-test-mw_state:executing_post_commit",
                               "executing_post_commit-test-mw_state:transaction_ended",
@@ -148,7 +149,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "initializing-test-mw_state:"
                             ]).graph
 
-      assert result.state == :completed
+      assert processor.state == :completed
 
       assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
                graph(description)
@@ -166,15 +167,15 @@ defmodule Gno.Commit.ProcessorTest do
 
       description = EX.S1 |> EX.p1(EX.O1)
 
-      {result, log} =
+      {processor, log} =
         with_log(fn ->
-          assert {:ok, result} = Processor.execute(processor, add: description)
-          result
+          assert {:ok, _commit, processor} = Processor.execute(processor, add: description)
+          processor
         end)
 
       assert log =~ "Commit operation completed successfully"
 
-      assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(result).graph,
+      assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(processor).graph,
                             RDF.List.from([
                               "completed-second-mw_state:executing_post_commit",
                               "completed-first-mw_state:executing_post_commit",
@@ -202,7 +203,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "initializing-first-mw_state:"
                             ]).graph
 
-      assert result.state == :completed
+      assert processor.state == :completed
 
       assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
                graph(description)

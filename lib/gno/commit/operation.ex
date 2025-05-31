@@ -93,13 +93,14 @@ defmodule Gno.CommitOperation do
   end
 
   @impl true
-  def result(%Processor{effective_changeset: %Gno.NoEffectiveChanges{} = changeset}) do
-    {:ok, changeset}
+  def result(%Processor{effective_changeset: %Gno.NoEffectiveChanges{} = changeset} = processor) do
+    {:ok, changeset, processor}
   end
 
   def result(processor) do
-    with {:ok, commit} <- Commit.load(processor.metadata, Processor.commit_id(processor)) do
-      Grax.put(commit, :changeset, processor.effective_changeset)
+    with {:ok, commit} <- Commit.load(processor.metadata, Processor.commit_id(processor)),
+         {:ok, commit} <- Grax.put(commit, :changeset, processor.effective_changeset) do
+      {:ok, commit, processor}
     end
   end
 

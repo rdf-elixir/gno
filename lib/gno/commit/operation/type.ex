@@ -16,7 +16,7 @@ defmodule Gno.CommitOperation.Type do
 
   @callback add_metadata(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
 
-  @callback result(Processor.t()) :: {:ok, any()} | {:error, any()}
+  @callback result(Processor.t()) :: {:ok, any(), Processor.t()} | {:error, any()}
 
   defmacro __using__(_opts) do
     quote do

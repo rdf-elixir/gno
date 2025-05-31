@@ -44,8 +44,6 @@ defmodule TestCommitOperation do
 
   @impl true
   def result(processor) do
-    with {:ok, commit} <- Gno.CommitOperation.result(processor) do
-      {:ok, Processor.assign(processor, :commit, commit)}
-    end
+    Gno.CommitOperation.result(processor)
   end
 end
