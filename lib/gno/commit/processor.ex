@@ -67,7 +67,7 @@ defmodule Gno.Commit.Processor do
   """
 
   alias Gno.Service
-  alias Gno.Commit.{Update, ProcessorError, ProcessorRollbackError}
+  alias Gno.Commit.{ProcessorError, ProcessorRollbackError}
   alias Gno.CommitMiddleware
   alias RDF.Graph
 
@@ -165,8 +165,9 @@ defmodule Gno.Commit.Processor do
     with {:ok, processor} <- execute_activity(processor, :init, &operation_type(&1).init(&1)),
          {:ok, processor} <-
            execute_activity(processor, :preparation, fn processor ->
-             with {:ok, processor} <- prepare_effective_changeset(processor),
-                  {:ok, processor} <- add_metadata(processor) do
+             with {:ok, processor} <-
+                    operation_type(processor).prepare_effective_changeset(processor),
+                  {:ok, processor} <- operation_type(processor).add_metadata(processor) do
                {:ok, processor}
              end
            end) do
@@ -176,7 +177,8 @@ defmodule Gno.Commit.Processor do
 
   defp commit(processor) do
     with {:ok, processor} <- execute_activity(processor, :start_transaction),
-         {:ok, processor} <- execute_activity(processor, :apply_changes, &apply_changes/1),
+         {:ok, processor} <-
+           execute_activity(processor, :apply_changes, &operation_type(&1).apply_changes(&1)),
          {:ok, processor} <- execute_activity(processor, :end_transaction) do
       {:ok, processor}
     end
@@ -254,13 +256,6 @@ defmodule Gno.Commit.Processor do
     exception -> {:error, exception}
   end
 
-  defp prepare_effective_changeset(processor) do
-    with {:ok, effective_changeset} <-
-           Gno.EffectiveChangeset.Query.call(processor.service, processor.changeset) do
-      {:ok, %__MODULE__{processor | effective_changeset: effective_changeset}}
-    end
-  end
-
   defp handle_empty_changeset(
          %__MODULE__{effective_changeset: %Gno.NoEffectiveChanges{} = changeset} = processor
        ) do
@@ -276,21 +271,6 @@ defmodule Gno.Commit.Processor do
   end
 
   defp handle_empty_changeset(processor), do: {:ok, processor}
-
-  defp add_metadata(processor) do
-    operation_type(processor).add_metadata(processor)
-  end
-
-  defp apply_changes(processor) do
-    with {:ok, update} <-
-           Update.build(
-             processor.service.repository,
-             Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
-           ),
-         :ok <- Service.handle_sparql(update, processor.service, nil) do
-      {:ok, %__MODULE__{processor | sparql_update: update}}
-    end
-  end
 
   defp handle_error(%__MODULE__{state: state} = processor, error)
        when state not in @no_rollback_states do
@@ -319,17 +299,8 @@ defmodule Gno.Commit.Processor do
     end
   end
 
-  # This current naive_metadata_rollback version is not safe, as the additional_changes are not effective changes.
-  # TODO: The final version should also compute effective changesets for the additional changes during the prepare step.
   defp rollback_changes(processor, state) when state in @rollback_update_states do
-    with {:ok, update} <-
-           Update.build_revert(
-             processor.service.repository,
-             Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
-           ),
-         :ok <- Service.handle_sparql(update, processor.service, nil) do
-      {:ok, processor}
-    end
+    operation_type(processor).rollback_changes(processor, state)
   end
 
   defp rollback_changes(processor, _state), do: {:ok, processor}

@@ -12,11 +12,39 @@ defmodule Gno.CommitOperation.Type do
             ) ::
               {:ok, Processor.t()} | {:skip_transaction, Processor.t()} | {:error, any()}
 
-  @callback commit_id(Processor.t()) :: {:ok, RDF.Resource.t()} | {:error, any()}
+  @doc """
+  Returns the commit id under which the commit metadata is stored.
+  """
+  @callback commit_id(Processor.t()) :: RDF.Resource.t()
 
+  @doc """
+  Adds metadata to the commit operation.
+
+  The metadata is added to the `Processor.metadata` graph from which it is later loaded
+  into the `Gno.Commit` object (usually in the final `result/1` callback).
+  """
   @callback add_metadata(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
 
+  @doc """
+  Returns the result of the commit operation.
+  """
   @callback result(Processor.t()) :: {:ok, any(), Processor.t()} | {:error, any()}
+
+  @doc """
+  Prepares the effective changeset from the input changeset.
+  """
+  @callback prepare_effective_changeset(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
+
+  @doc """
+  Applies the changes to the store.
+  """
+  @callback apply_changes(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
+
+  @doc """
+  Rolls back changes when an error occurs during the commit process.
+  """
+  @callback rollback_changes(Processor.t(), state :: atom()) ::
+              {:ok, Processor.t()} | {:error, any()}
 
   defmacro __using__(_opts) do
     quote do
@@ -62,11 +90,29 @@ defmodule Gno.CommitOperation.Type do
         Gno.CommitOperation.result(processor)
       end
 
+      @impl true
+      def prepare_effective_changeset(processor) do
+        Gno.CommitOperation.prepare_effective_changeset(processor)
+      end
+
+      @impl true
+      def apply_changes(processor) do
+        Gno.CommitOperation.apply_changes(processor)
+      end
+
+      @impl true
+      def rollback_changes(processor, state) do
+        Gno.CommitOperation.rollback_changes(processor, state)
+      end
+
       defoverridable init: 1,
                      handle_empty_changeset: 3,
                      commit_id: 1,
                      add_metadata: 1,
-                     result: 1
+                     result: 1,
+                     prepare_effective_changeset: 1,
+                     apply_changes: 1,
+                     rollback_changes: 2
     end
   end
 end

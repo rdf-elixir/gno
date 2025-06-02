@@ -1,8 +1,8 @@
 defmodule Gno.CommitOperation do
   use Grax.Schema
 
-  alias Gno.{Commit, Changeset, EffectiveChangeset, CommitMiddleware}
-  alias Gno.Commit.Processor
+  alias Gno.{Commit, Changeset, EffectiveChangeset, CommitMiddleware, Service}
+  alias Gno.Commit.{Processor, Update}
   alias RDF.Graph
 
   import Gno.Utils, only: [bang!: 2]
@@ -90,6 +90,39 @@ defmodule Gno.CommitOperation do
     Processor.update_metadata(processor, fn metadata ->
       Graph.add(metadata, Processor.commit_id(processor) |> PROV.endedAtTime(DateTime.utc_now()))
     end)
+  end
+
+  @impl true
+  def prepare_effective_changeset(processor) do
+    with {:ok, effective_changeset} <-
+           Gno.EffectiveChangeset.Query.call(processor.service, processor.changeset) do
+      {:ok, %Processor{processor | effective_changeset: effective_changeset}}
+    end
+  end
+
+  @impl true
+  def apply_changes(processor) do
+    with {:ok, update} <-
+           Update.build(
+             processor.service.repository,
+             Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
+           ),
+         :ok <- Service.handle_sparql(update, processor.service, nil) do
+      {:ok, %Processor{processor | sparql_update: update}}
+    end
+  end
+
+  # This current naive_metadata_rollback version is not safe, as the additional_changes are not effective changes.
+  @impl true
+  def rollback_changes(processor, _state) do
+    with {:ok, update} <-
+           Update.build_revert(
+             processor.service.repository,
+             Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
+           ),
+         :ok <- Service.handle_sparql(update, processor.service, nil) do
+      {:ok, processor}
+    end
   end
 
   @impl true
