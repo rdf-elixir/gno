@@ -28,11 +28,19 @@ defmodule Gno.Changeset do
   @doc """
   Creates a new valid changeset.
   """
-  @spec new(t() | keyword, opts :: keyword) :: {:ok, t()} | {:error, any()}
+  @spec new(t() | RDF.Diff.t() | keyword, opts :: keyword) :: {:ok, t()} | {:error, any()}
   def new(changes, opts \\ [])
 
   def new(%__MODULE__{} = changeset, opts) do
     validate(changeset, opts)
+  end
+
+  def new(%RDF.Diff{additions: additions, deletions: deletions}, opts) do
+    %__MODULE__{
+      add: Action.graph(additions, :add),
+      remove: Action.graph(deletions, :remove)
+    }
+    |> validate(opts)
   end
 
   def new(%{} = action_map, opts) when is_action_map(action_map) do

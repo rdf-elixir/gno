@@ -2,9 +2,9 @@ defmodule Gno.Commit.Update do
   @moduledoc false
 
   alias Gno.{Repository, Changeset, EffectiveChangeset}
-  alias RDF.{NTriples, Diff}
+  alias RDF.NTriples
 
-  @type changes :: Changeset.t() | EffectiveChangeset.t() | Diff.t()
+  @type changes :: Changeset.t() | EffectiveChangeset.t()
   @type graph_changes :: %{optional(atom() | String.t()) => changes()}
 
   @doc """
@@ -32,11 +32,9 @@ defmodule Gno.Commit.Update do
 
   defp deletes(%Changeset{} = changeset), do: Changeset.deletes(changeset)
   defp deletes(%EffectiveChangeset{} = changeset), do: EffectiveChangeset.deletes(changeset)
-  defp deletes(%Diff{deletions: deletions}), do: deletions
 
   defp inserts(%Changeset{} = changeset), do: Changeset.inserts(changeset)
   defp inserts(%EffectiveChangeset{} = changeset), do: EffectiveChangeset.inserts(changeset)
-  defp inserts(%Diff{additions: additions}), do: additions
 
   defp invert(additional_changes) do
     Map.new(additional_changes, fn {graph_name, changes} -> {graph_name, do_invert(changes)} end)
@@ -44,7 +42,6 @@ defmodule Gno.Commit.Update do
 
   defp do_invert(%EffectiveChangeset{} = changeset), do: EffectiveChangeset.invert(changeset)
   defp do_invert(%Changeset{} = changeset), do: Changeset.invert(changeset)
-  defp do_invert(%Diff{} = diff), do: Diff.invert(diff)
 
   defp graph_changes(_repo, _graph_id, nil), do: ""
 

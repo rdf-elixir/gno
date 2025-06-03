@@ -5,6 +5,7 @@ defmodule Gno.Commit.ProcessorTest do
 
   alias Gno.Commit.{Processor, ProcessorError, ProcessorRollbackError}
   alias Gno.{Commit, EffectiveChangeset}
+  alias RDF.Diff
 
   import ExUnit.CaptureLog
 
@@ -473,6 +474,187 @@ defmodule Gno.Commit.ProcessorTest do
       update_fn = fn _graph -> {:error, "test error"} end
 
       assert {:error, "test error"} = Processor.update_metadata(commit_processor(), update_fn)
+    end
+  end
+
+  describe "add_additional_changes/3" do
+    test "adds changes to empty additional_changes" do
+      changeset = %Changeset{add: RDF.graph({EX.S1, EX.p1(), EX.O1})}
+
+      assert Processor.add_additional_changes(%{}, :graph1, changeset) == %{graph1: changeset}
+    end
+
+    test "updates existing Changeset with new Changeset" do
+      existing = %Changeset{add: RDF.graph({EX.S1, EX.p1(), EX.O1})}
+      new_changes = %Changeset{add: RDF.graph({EX.S2, EX.p2(), EX.O2})}
+
+      assert %{graph1: %Changeset{add: add}} =
+               Processor.add_additional_changes(%{graph1: existing}, :graph1, new_changes)
+
+      assert Graph.equal?(
+               add,
+               RDF.graph([
+                 {EX.S1, EX.p1(), EX.O1},
+                 {EX.S2, EX.p2(), EX.O2}
+               ])
+             )
+    end
+
+    test "updates existing Changeset with EffectiveChangeset" do
+      existing = %Changeset{
+        add: RDF.graph({EX.S1, EX.p1(), EX.O1}),
+        remove: RDF.graph({EX.S2, EX.p2(), EX.O2})
+      }
+
+      effective = %EffectiveChangeset{
+        add: RDF.graph({EX.S3, EX.p3(), EX.O3}),
+        remove: RDF.graph({EX.S4, EX.p4(), EX.O4})
+      }
+
+      assert %{graph1: %Changeset{add: add, remove: remove}} =
+               Processor.add_additional_changes(%{graph1: existing}, :graph1, effective)
+
+      assert Graph.equal?(
+               add,
+               RDF.graph([
+                 {EX.S1, EX.p1(), EX.O1},
+                 {EX.S3, EX.p3(), EX.O3}
+               ])
+             )
+
+      assert Graph.equal?(
+               remove,
+               RDF.graph([
+                 {EX.S2, EX.p2(), EX.O2},
+                 {EX.S4, EX.p4(), EX.O4}
+               ])
+             )
+    end
+
+    test "updates existing EffectiveChangeset with new changes" do
+      existing = %EffectiveChangeset{
+        add: RDF.graph({EX.S1, EX.p1(), EX.O1}),
+        remove: RDF.graph({EX.S2, EX.p2(), EX.O2})
+      }
+
+      new_changes = %Changeset{
+        add: RDF.graph({EX.S3, EX.p3(), EX.O3}),
+        update: RDF.graph({EX.S4, EX.p4(), EX.O4})
+      }
+
+      assert %{graph1: %Changeset{}} =
+               Processor.add_additional_changes(%{graph1: existing}, :graph1, new_changes)
+    end
+
+    test "adds RDF.Diff as Changeset" do
+      diff = %Diff{
+        additions: RDF.graph({EX.S1, EX.p1(), EX.O1}),
+        deletions: RDF.graph({EX.S2, EX.p2(), EX.O2})
+      }
+
+      assert %{graph1: %Changeset{add: add, remove: remove}} =
+               Processor.add_additional_changes(%{}, :graph1, diff)
+
+      assert Graph.equal?(add, RDF.graph({EX.S1, EX.p1(), EX.O1}))
+      assert Graph.equal?(remove, RDF.graph({EX.S2, EX.p2(), EX.O2}))
+    end
+
+    test "updates existing Changeset (from RDF.Diff) with new Changeset" do
+      diff = %Diff{
+        additions: RDF.graph({EX.S1, EX.p1(), EX.O1}),
+        deletions: RDF.graph({EX.S2, EX.p2(), EX.O2})
+      }
+
+      additional_changes = Processor.add_additional_changes(%{}, :graph1, diff)
+
+      new_changes = %Changeset{
+        add: RDF.graph({EX.S3, EX.p3(), EX.O3}),
+        remove: RDF.graph({EX.S4, EX.p4(), EX.O4})
+      }
+
+      assert %{graph1: %Changeset{add: add, remove: remove}} =
+               Processor.add_additional_changes(additional_changes, :graph1, new_changes)
+
+      assert Graph.equal?(
+               add,
+               RDF.graph([
+                 {EX.S1, EX.p1(), EX.O1},
+                 {EX.S3, EX.p3(), EX.O3}
+               ])
+             )
+
+      assert Graph.equal?(
+               remove,
+               RDF.graph([
+                 {EX.S2, EX.p2(), EX.O2},
+                 {EX.S4, EX.p4(), EX.O4}
+               ])
+             )
+    end
+
+    test "updates existing Changeset (from RDF.Diff) with EffectiveChangeset" do
+      diff = %Diff{
+        additions: RDF.graph({EX.S1, EX.p1(), EX.O1}),
+        deletions: RDF.graph({EX.S2, EX.p2(), EX.O2})
+      }
+
+      additional_changes = Processor.add_additional_changes(%{}, :graph1, diff)
+
+      effective = %EffectiveChangeset{
+        add: RDF.graph({EX.S3, EX.p3(), EX.O3}),
+        remove: RDF.graph({EX.S4, EX.p4(), EX.O4})
+      }
+
+      assert %{graph1: %Changeset{add: add, remove: remove}} =
+               Processor.add_additional_changes(additional_changes, :graph1, effective)
+
+      assert Graph.equal?(
+               add,
+               RDF.graph([
+                 {EX.S1, EX.p1(), EX.O1},
+                 {EX.S3, EX.p3(), EX.O3}
+               ])
+             )
+
+      assert Graph.equal?(
+               remove,
+               RDF.graph([
+                 {EX.S2, EX.p2(), EX.O2},
+                 {EX.S4, EX.p4(), EX.O4}
+               ])
+             )
+    end
+
+    test "handles multiple graphs" do
+      changeset1 = %Changeset{add: RDF.graph({EX.S1, EX.p1(), EX.O1})}
+      changeset2 = %Changeset{add: RDF.graph({EX.S2, EX.p2(), EX.O2})}
+
+      assert %{}
+             |> Processor.add_additional_changes(:graph1, changeset1)
+             |> Processor.add_additional_changes(:graph2, changeset2) == %{
+               graph1: changeset1,
+               graph2: changeset2
+             }
+    end
+
+    test "accepts changes as keyword list" do
+      assert %{graph1: %Changeset{add: add, remove: remove}} =
+               Processor.add_additional_changes(
+                 %{},
+                 :graph1,
+                 add: RDF.graph({EX.S1, EX.p1(), EX.O1}),
+                 remove: RDF.graph({EX.S2, EX.p2(), EX.O2})
+               )
+
+      assert Graph.equal?(add, RDF.graph({EX.S1, EX.p1(), EX.O1}))
+      assert Graph.equal?(remove, RDF.graph({EX.S2, EX.p2(), EX.O2}))
+    end
+
+    test "allow updates of the processor itself" do
+      changeset = %Changeset{add: RDF.graph({EX.S1, EX.p1(), EX.O1})}
+
+      assert {:ok, %Processor{additional_changes: %{"metadata" => ^changeset}}} =
+               Processor.add_additional_changes(commit_processor(), "metadata", changeset)
     end
   end
 

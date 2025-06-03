@@ -68,7 +68,7 @@ defmodule Gno.Commit.Processor do
 
   alias Gno.Service
   alias Gno.Commit.{ProcessorError, ProcessorRollbackError}
-  alias Gno.CommitMiddleware
+  alias Gno.{CommitMiddleware, Changeset, EffectiveChangeset}
   alias RDF.Graph
 
   defstruct service: nil,
@@ -366,6 +366,39 @@ defmodule Gno.Commit.Processor do
 
   def update_metadata!(processor, graph_or_fun),
     do: bang!(&update_metadata/2, [processor, graph_or_fun])
+
+  def add_additional_changes(%__MODULE__{} = processor, graph_name, changes) do
+    {:ok,
+     %__MODULE__{
+       processor
+       | additional_changes:
+           add_additional_changes(processor.additional_changes, graph_name, changes)
+     }}
+  end
+
+  def add_additional_changes(additional_changes, graph_name, changes) do
+    Map.update(
+      additional_changes,
+      graph_name,
+      normalize_changes(changes),
+      &update_existing_changes(&1, changes)
+    )
+  end
+
+  defp normalize_changes(%EffectiveChangeset{} = effective_changeset), do: effective_changeset
+  defp normalize_changes(changes), do: Changeset.new!(changes)
+
+  defp update_existing_changes(%Changeset{} = existing, changes) do
+    Changeset.update(existing, normalize_changes(changes))
+  end
+
+  defp update_existing_changes(%EffectiveChangeset{} = existing, changes) do
+    existing |> Changeset.new!() |> Changeset.update(normalize_changes(changes))
+  end
+
+  def all_changes(processor) do
+    operation_type(processor).all_changes(processor)
+  end
 
   def assign(processor, key, value) do
     put_in(processor.assigns[key], value)

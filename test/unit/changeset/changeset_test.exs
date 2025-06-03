@@ -50,6 +50,21 @@ defmodule Gno.ChangesetTest do
       assert {:error, %InvalidChangesetError{}} =
                Changeset.new(add: statement(1), remove: statement(1))
     end
+
+    test "with RDF.Diff" do
+      diff =
+        RDF.Diff.new(
+          additions: graph([1, 2]),
+          deletions: graph([3, 4])
+        )
+
+      assert Changeset.new(diff) ==
+               {:ok,
+                %Changeset{
+                  add: graph([1, 2]),
+                  remove: graph([3, 4])
+                }}
+    end
   end
 
   describe "extract/1" do
