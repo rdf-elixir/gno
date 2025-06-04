@@ -3,7 +3,6 @@ defmodule Gno.CommitOperation do
 
   alias Gno.{Commit, Changeset, EffectiveChangeset, CommitMiddleware, Service}
   alias Gno.Commit.{Processor, Update}
-  alias RDF.Graph
 
   import Gno.Utils, only: [bang!: 2]
   import RDF.Utils
@@ -92,9 +91,11 @@ defmodule Gno.CommitOperation do
 
   @impl true
   def add_metadata(processor) do
-    Processor.update_metadata(processor, fn metadata ->
-      Graph.add(metadata, Processor.commit_id(processor) |> PROV.endedAtTime(DateTime.utc_now()))
-    end)
+    {:ok,
+     Processor.add_metadata(
+       processor,
+       Processor.commit_id(processor) |> PROV.endedAtTime(DateTime.utc_now())
+     )}
   end
 
   @impl true

@@ -367,6 +367,10 @@ defmodule Gno.Commit.Processor do
   def update_metadata!(processor, graph_or_fun),
     do: bang!(&update_metadata/2, [processor, graph_or_fun])
 
+  def add_metadata(processor, metadata) do
+    update_metadata!(processor, &Graph.add(&1, metadata))
+  end
+
   def add_additional_changes(%__MODULE__{} = processor, graph_name, changes) do
     {:ok,
      %__MODULE__{
