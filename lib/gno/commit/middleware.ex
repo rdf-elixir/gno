@@ -36,10 +36,10 @@ defmodule Gno.CommitMiddleware do
 
       @impl true
       def handle_state(_state, %__MODULE__{} = middleware, processor),
-        do: {:ok, middleware}
+        do: {:ok, processor}
 
       @impl true
-      def rollback(%__MODULE__{} = middleware, processor), do: {:ok, middleware}
+      def rollback(%__MODULE__{} = middleware, processor), do: {:ok, processor}
 
       defoverridable handle_state: 3, rollback: 2
     end
