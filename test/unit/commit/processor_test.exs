@@ -82,10 +82,17 @@ defmodule Gno.Commit.ProcessorTest do
     assert processor.state == :completed
     assert processor.assigns[:custom_init]
 
-    assert Graph.include?(
-             processor.metadata,
-             {TestCommitOperation.commit_id(processor), EX.customMetadata(), "test"}
-           )
+    expected_metadata =
+      processor |> TestCommitOperation.commit_id() |> EX.customMetadata("test") |> RDF.graph()
+
+    assert Graph.include?(processor.metadata, expected_metadata)
+
+    assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
+             Graph.new(description)
+
+    assert Gno.QueryUtils.graph_query()
+           |> Gno.execute!(graph: :repo)
+           |> Graph.include?(expected_metadata)
   end
 
   describe "execute/3 handling of NoEffectiveChanges" do

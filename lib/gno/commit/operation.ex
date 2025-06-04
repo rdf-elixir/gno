@@ -86,6 +86,11 @@ defmodule Gno.CommitOperation do
   end
 
   @impl true
+  def all_changes(processor) do
+    Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
+  end
+
+  @impl true
   def add_metadata(processor) do
     Processor.update_metadata(processor, fn metadata ->
       Graph.add(metadata, Processor.commit_id(processor) |> PROV.endedAtTime(DateTime.utc_now()))
@@ -103,10 +108,7 @@ defmodule Gno.CommitOperation do
   @impl true
   def apply_changes(processor) do
     with {:ok, update} <-
-           Update.build(
-             processor.service.repository,
-             Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
-           ),
+           Update.build(processor.service.repository, Processor.all_changes(processor)),
          :ok <- Service.handle_sparql(update, processor.service, nil) do
       {:ok, %Processor{processor | sparql_update: update}}
     end
@@ -116,10 +118,7 @@ defmodule Gno.CommitOperation do
   @impl true
   def rollback_changes(processor, _state) do
     with {:ok, update} <-
-           Update.build_revert(
-             processor.service.repository,
-             Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
-           ),
+           Update.build_revert(processor.service.repository, Processor.all_changes(processor)),
          :ok <- Service.handle_sparql(update, processor.service, nil) do
       {:ok, processor}
     end

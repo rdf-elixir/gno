@@ -31,6 +31,15 @@ defmodule TestCommitOperation do
   end
 
   @impl true
+  def all_changes(processor) do
+    processor
+    |> super()
+    |> Processor.add_additional_changes(:repo,
+      add: RDF.graph(commit_id(processor) |> EX.customMetadata("test"))
+    )
+  end
+
+  @impl true
   def add_metadata(processor) do
     Processor.update_metadata(processor, fn metadata ->
       Graph.put_properties(

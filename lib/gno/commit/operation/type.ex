@@ -18,6 +18,14 @@ defmodule Gno.CommitOperation.Type do
   @callback commit_id(Processor.t()) :: RDF.Resource.t()
 
   @doc """
+  Returns all changes that should be applied in the commit operation.
+
+  This includes the effective changeset and any additional changes that should be
+  applied in the same transaction.
+  """
+  @callback all_changes(Processor.t()) :: %{optional(atom) => any()}
+
+  @doc """
   Adds metadata to the commit operation.
 
   The metadata is added to the `Processor.metadata` graph from which it is later loaded
@@ -71,23 +79,18 @@ defmodule Gno.CommitOperation.Type do
       end
 
       @impl true
-      def handle_empty_changeset(processor, handling, changeset) do
-        Gno.CommitOperation.handle_empty_changeset(processor, handling, changeset)
-      end
-
-      @impl true
       def commit_id(processor) do
         Gno.CommitOperation.commit_id(processor)
       end
 
       @impl true
-      def add_metadata(processor) do
-        Gno.CommitOperation.add_metadata(processor)
+      def all_changes(processor) do
+        Gno.CommitOperation.all_changes(processor)
       end
 
       @impl true
-      def result(processor) do
-        Gno.CommitOperation.result(processor)
+      def add_metadata(processor) do
+        Gno.CommitOperation.add_metadata(processor)
       end
 
       @impl true
@@ -101,18 +104,29 @@ defmodule Gno.CommitOperation.Type do
       end
 
       @impl true
+      def handle_empty_changeset(processor, handling, changeset) do
+        Gno.CommitOperation.handle_empty_changeset(processor, handling, changeset)
+      end
+
+      @impl true
       def rollback_changes(processor, state) do
         Gno.CommitOperation.rollback_changes(processor, state)
       end
 
+      @impl true
+      def result(processor) do
+        Gno.CommitOperation.result(processor)
+      end
+
       defoverridable init: 1,
-                     handle_empty_changeset: 3,
                      commit_id: 1,
+                     all_changes: 1,
                      add_metadata: 1,
-                     result: 1,
                      prepare_effective_changeset: 1,
                      apply_changes: 1,
-                     rollback_changes: 2
+                     handle_empty_changeset: 3,
+                     rollback_changes: 2,
+                     result: 1
     end
   end
 end
