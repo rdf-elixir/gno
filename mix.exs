@@ -29,6 +29,7 @@ defmodule Gno.MixProject do
       rdf_ex_dep(:prov, "~> 0.1"),
       # we are using YuriTemplate, because we have it already as a dependency of Grax
       {:yuri_template, "~> 1.1"},
+      {:uniq, "~> 0.6"},
       {:hackney, "~> 1.15", only: [:dev, :test]}
     ]
   end

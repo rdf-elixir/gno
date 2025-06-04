@@ -53,7 +53,7 @@ defmodule Gno.CommitOperationTest do
                %{commit_processor() | input: changes}
                |> CommitOperation.init()
 
-      assert %RDF.BlankNode{} = commit_id
+      assert %RDF.IRI{value: "urn:uuid:" <> _} = commit_id
     end
   end
 end

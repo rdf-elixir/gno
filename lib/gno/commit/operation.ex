@@ -64,7 +64,7 @@ defmodule Gno.CommitOperation do
     end
   end
 
-  defp init_commit_id(), do: RDF.bnode()
+  defp init_commit_id(), do: RDF.iri(Uniq.UUID.uuid4(:urn))
 
   defp init_changeset(%EffectiveChangeset{} = changeset), do: {:ok, changeset}
   defp init_changeset(changes), do: Changeset.new(changes)
