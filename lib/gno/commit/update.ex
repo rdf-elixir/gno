@@ -45,8 +45,8 @@ defmodule Gno.Commit.Update do
 
   defp graph_changes(_repo, _graph_id, nil), do: ""
 
-  defp graph_changes(repo, graph_name, changes) do
-    "GRAPH <#{Repository.graph_name(repo, graph_name)}> { #{triples(changes)} }"
+  defp graph_changes(%repository_type{} = repo, graph_name, changes) do
+    "GRAPH <#{repository_type.graph_name(repo, graph_name)}> { #{triples(changes)} }"
   end
 
   defp triples(nil), do: ""
