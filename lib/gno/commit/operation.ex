@@ -3,6 +3,7 @@ defmodule Gno.CommitOperation do
 
   alias Gno.{Commit, Changeset, EffectiveChangeset, CommitMiddleware, Service}
   alias Gno.Commit.{Processor, Update}
+  alias RDF.Graph
 
   import Gno.Utils, only: [bang!: 2]
   import RDF.Utils
@@ -16,6 +17,13 @@ defmodule Gno.CommitOperation do
   end
 
   @behaviour Gno.CommitOperation.Type
+
+  @preliminary_commit_id RDF.bnode(:preliminary_commit_id)
+
+  @rollback_update_states [
+    :changes_applied,
+    :ending_transaction
+  ]
 
   def new(attrs \\ []) do
     {id, attrs} = Keyword.pop(attrs, :id, RDF.bnode())
@@ -57,16 +65,39 @@ defmodule Gno.CommitOperation do
   defp init_middleware(middleware), do: {:ok, middleware}
 
   @impl true
-  def init(processor) do
+  def all_changes(processor) do
+    Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
+  end
+
+  @impl true
+  def handle_step(:init, processor) do
     with {:ok, changeset} <- init_changeset(processor.input) do
-      {:ok, %Processor{processor | changeset: changeset, commit_id: init_commit_id()}}
+      {:ok,
+       %Processor{processor | changeset: changeset}
+       |> Processor.set_commit_id(@preliminary_commit_id, false)}
     end
   end
 
-  defp init_commit_id(), do: RDF.iri(Uniq.UUID.uuid4(:urn))
+  @impl true
+  def handle_step(:preparation, processor) do
+    with {:ok, effective_changeset} <-
+           Gno.EffectiveChangeset.Query.call(processor.service, processor.changeset) do
+      %Processor{processor | effective_changeset: effective_changeset}
+      |> Processor.operation_type(processor).prepare_commit()
+    end
+  end
 
-  defp init_changeset(%EffectiveChangeset{} = changeset), do: {:ok, changeset}
-  defp init_changeset(changes), do: Changeset.new(changes)
+  @impl true
+  def handle_step(:apply_changes, processor) do
+    with {:ok, update} <-
+           Update.build(processor.service.repository, Processor.all_changes(processor)),
+         :ok <- Service.handle_sparql(update, processor.service, nil) do
+      {:ok, %Processor{processor | sparql_update: update}}
+    end
+  end
+
+  @impl true
+  def handle_step(_step, processor), do: {:ok, processor}
 
   @impl true
   def handle_empty_changeset(_processor, "error", changeset), do: {:error, changeset}
@@ -80,50 +111,31 @@ defmodule Gno.CommitOperation do
     do: {:error, "Invalid on_no_effective_changes value: #{invalid}"}
 
   @impl true
-  def commit_id(processor) do
-    processor.commit_id
-  end
-
-  @impl true
-  def all_changes(processor) do
-    Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
-  end
-
-  @impl true
-  def add_metadata(processor) do
-    {:ok,
-     Processor.add_metadata(
-       processor,
-       Processor.commit_id(processor) |> PROV.endedAtTime(DateTime.utc_now())
-     )}
-  end
-
-  @impl true
-  def prepare_effective_changeset(processor) do
-    with {:ok, effective_changeset} <-
-           Gno.EffectiveChangeset.Query.call(processor.service, processor.changeset) do
-      {:ok, %Processor{processor | effective_changeset: effective_changeset}}
+  def prepare_commit(%Processor{effective_changeset: %EffectiveChangeset{}} = processor) do
+    with {:ok, commit} <- Commit.new(processor.effective_changeset) do
+      processor
+      |> Processor.set_commit_id(commit.__id__)
+      |> Processor.update_metadata(&Graph.put_properties(Grax.to_rdf!(commit), &1))
     end
   end
 
-  @impl true
-  def apply_changes(processor) do
-    with {:ok, update} <-
-           Update.build(processor.service.repository, Processor.all_changes(processor)),
-         :ok <- Service.handle_sparql(update, processor.service, nil) do
-      {:ok, %Processor{processor | sparql_update: update}}
-    end
-  end
+  def prepare_commit(processor), do: {:ok, processor}
 
   # This current naive_metadata_rollback version is not safe, as the additional_changes are not effective changes.
   @impl true
-  def rollback_changes(processor, _state) do
+  def rollback(state, processor) when state in @rollback_update_states do
     with {:ok, update} <-
            Update.build_revert(processor.service.repository, Processor.all_changes(processor)),
          :ok <- Service.handle_sparql(update, processor.service, nil) do
       {:ok, processor}
     end
   end
+
+  @impl true
+  def rollback(_state, processor), do: {:ok, processor}
+
+  defp init_changeset(%EffectiveChangeset{} = changeset), do: {:ok, changeset}
+  defp init_changeset(changes), do: Changeset.new(changes)
 
   @impl true
   def result(%Processor{effective_changeset: %Gno.NoEffectiveChanges{} = changeset} = processor) do
@@ -148,13 +160,16 @@ defmodule Gno.CommitOperation do
       iex> Gno.CommitOperation.type?(Gno.Commit)
       false
 
+      iex> Gno.CommitOperation.type?(Gno.CommitLogger)
+      false
+
       iex> Gno.CommitOperation.type?(NonExisting)
       false
 
   """
   @spec type?(module) :: boolean
   def type?(module) when is_atom(module) do
-    Code.ensure_loaded?(module) and function_exported?(module, :add_metadata, 1)
+    Code.ensure_loaded?(module) and function_exported?(module, :handle_step, 2)
   end
 
   def type?(%RDF.IRI{} = iri), do: iri |> Grax.schema() |> type?()

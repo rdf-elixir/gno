@@ -29,9 +29,7 @@ defmodule Gno.Commit do
 
   def new!(changes, args \\ []), do: bang!(&new/2, [changes, args])
 
-  defp init_id(_changeset) do
-    RDF.bnode()
-  end
+  defp init_id(_changeset), do: RDF.iri(Uniq.UUID.uuid4(:urn))
 
   def validate(%__MODULE__{} = commit) do
     Grax.validate(commit)

@@ -82,8 +82,7 @@ defmodule Gno.Commit.ProcessorTest do
     assert processor.state == :completed
     assert processor.assigns[:custom_init]
 
-    expected_metadata =
-      processor |> TestCommitOperation.commit_id() |> EX.customMetadata("test") |> RDF.graph()
+    expected_metadata = EX.customCommitId() |> EX.customMetadata("test") |> RDF.graph()
 
     assert Graph.include?(processor.metadata, expected_metadata)
 
@@ -153,8 +152,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "starting_transaction-test-mw_state:prepared",
                               "prepared-test-mw_state:preparing",
                               "preparing-test-mw_state:initialized",
-                              "initialized-test-mw_state:initializing",
-                              "initializing-test-mw_state:"
+                              "initialized-test-mw_state:initializing"
                             ]).graph
 
       assert processor.state == :completed
@@ -206,9 +204,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "preparing-second-mw_state:initialized",
                               "preparing-first-mw_state:initialized",
                               "initialized-second-mw_state:initializing",
-                              "initialized-first-mw_state:initializing",
-                              "initializing-second-mw_state:",
-                              "initializing-first-mw_state:"
+                              "initialized-first-mw_state:initializing"
                             ]).graph
 
       assert processor.state == :completed
@@ -231,8 +227,7 @@ defmodule Gno.Commit.ProcessorTest do
       assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(result).graph,
                             RDF.List.from([
                               "rollback-initialized-test-mw_state:initialized",
-                              "initialized-test-mw_state:initializing",
-                              "initializing-test-mw_state:"
+                              "initialized-test-mw_state:initializing"
                             ]).graph
 
       assert result.state == {:rolled_back, :initialized}
@@ -259,8 +254,7 @@ defmodule Gno.Commit.ProcessorTest do
       assert_rdf_isomorphic TestStateFlowMiddleware.state_flow_list(result).graph,
                             RDF.List.from([
                               "rollback-initialized-test-mw_state:initialized",
-                              "initialized-test-mw_state:initializing",
-                              "initializing-test-mw_state:"
+                              "initialized-test-mw_state:initializing"
                             ]).graph
 
       assert result.state == {:rolled_back, :initialized}
@@ -291,8 +285,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "starting_transaction-test-mw_state:prepared",
                               "prepared-test-mw_state:preparing",
                               "preparing-test-mw_state:initialized",
-                              "initialized-test-mw_state:initializing",
-                              "initializing-test-mw_state:"
+                              "initialized-test-mw_state:initializing"
                             ]).graph
 
       assert result.state == :transaction_ended
@@ -324,8 +317,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "starting_transaction-test-mw_state:prepared",
                               "prepared-test-mw_state:preparing",
                               "preparing-test-mw_state:initialized",
-                              "initialized-test-mw_state:initializing",
-                              "initializing-test-mw_state:"
+                              "initialized-test-mw_state:initializing"
                             ]).graph
 
       assert result.state == {:rolled_back, :changes_applied}
@@ -359,10 +351,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "preparing-first-mw_state:initialized",
                               "initialized-third-mw_state:initializing",
                               "initialized-second-mw_state:initializing",
-                              "initialized-first-mw_state:initializing",
-                              "initializing-third-mw_state:",
-                              "initializing-second-mw_state:",
-                              "initializing-first-mw_state:"
+                              "initialized-first-mw_state:initializing"
                             ]).graph
     end
 
@@ -417,10 +406,7 @@ defmodule Gno.Commit.ProcessorTest do
                               "rollback-initialized-third-mw_state:initialized",
                               "initialized-third-mw_state:initializing",
                               "initialized-second-mw_state:initializing",
-                              "initialized-first-mw_state:initializing",
-                              "initializing-third-mw_state:",
-                              "initializing-second-mw_state:",
-                              "initializing-first-mw_state:"
+                              "initialized-first-mw_state:initializing"
                             ]).graph
 
       assert result.state == {:rollback, :initialized}
@@ -428,21 +414,22 @@ defmodule Gno.Commit.ProcessorTest do
     end
   end
 
-  describe "update_commit_id/2" do
+  describe "set_commit_id/2" do
     test "updates the commit id and renames the commit id in the metadata" do
-      processor = %{commit_processor() | commit_id: RDF.iri(EX.initialCommitId())}
-
-      processor =
-        Processor.add_metadata(processor, [
-          {Processor.commit_id(processor), EX.test(), "test"},
-          {EX.S, EX.test(), Processor.commit_id(processor)}
-        ])
-
+      initial_commit_id = RDF.iri(EX.initialCommitId())
       new_commit_id = RDF.iri(EX.finalCommitId())
 
-      assert %Processor{commit_id: ^new_commit_id} =
+      processor =
+        commit_processor()
+        |> Processor.assign(:commit_id, initial_commit_id)
+        |> Processor.add_metadata([
+          {EX.initialCommitId(), EX.test(), "test"},
+          {EX.S, EX.test(), EX.initialCommitId()}
+        ])
+
+      assert %Processor{assigns: %{commit_id: ^new_commit_id}} =
                processor =
-               Processor.update_commit_id(processor, new_commit_id)
+               Processor.set_commit_id(processor, new_commit_id)
 
       assert Graph.include?(processor.metadata, [
                {new_commit_id, EX.test(), "test"},

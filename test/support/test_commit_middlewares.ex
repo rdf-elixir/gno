@@ -49,7 +49,11 @@ defmodule TestStateFlowMiddleware do
         processor
       end
 
-    prepend_state_flow(processor, middleware, state)
+    if Processor.commit_id(processor) do
+      prepend_state_flow(processor, middleware, state)
+    else
+      {:ok, processor}
+    end
   end
 
   @impl true

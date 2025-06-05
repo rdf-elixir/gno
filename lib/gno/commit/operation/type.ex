@@ -3,8 +3,20 @@ defmodule Gno.CommitOperation.Type do
 
   @type t :: Grax.Schema.t()
 
-  @callback init(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
+  @doc """
+  Handles state transitions during the commit process.
+  """
+  @callback handle_step(step :: atom(), Processor.t()) ::
+              {:ok, Processor.t()}
+              | {:error, term()}
+              | {:error, term(), Processor.t()}
 
+  @doc """
+  Handles the case that no effective changes result from the changeset.
+
+  Implementations can in particular implement custom handling of the
+  `:on_no_effective_changes` option with additional `handling` values.
+  """
   @callback handle_empty_changeset(
               Processor.t(),
               handling :: binary(),
@@ -13,9 +25,21 @@ defmodule Gno.CommitOperation.Type do
               {:ok, Processor.t()} | {:skip_transaction, Processor.t()} | {:error, any()}
 
   @doc """
-  Returns the commit id under which the commit metadata is stored.
+  Rolls back changes when an error occurs during the commit process.
   """
-  @callback commit_id(Processor.t()) :: RDF.Resource.t()
+  @callback rollback(state :: atom(), Processor.t()) ::
+              {:ok, Processor.t()}
+              | {:error, term()}
+              | {:error, term(), Processor.t()}
+
+  @doc """
+  Prepares the final commit and adding its metadata.
+
+  Note, that this callback is called by the default implementation of the `handle_step/2` of
+  the `:preparation` step, allowing its customization. So, it is only needed when this
+  default implementation is reused.
+  """
+  @callback prepare_commit(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
 
   @doc """
   Returns all changes that should be applied in the commit operation.
@@ -26,33 +50,9 @@ defmodule Gno.CommitOperation.Type do
   @callback all_changes(Processor.t()) :: %{optional(atom) => any()}
 
   @doc """
-  Adds metadata to the commit operation.
-
-  The metadata is added to the `Processor.metadata` graph from which it is later loaded
-  into the `Gno.Commit` object (usually in the final `result/1` callback).
-  """
-  @callback add_metadata(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
-
-  @doc """
   Returns the result of the commit operation.
   """
   @callback result(Processor.t()) :: {:ok, any(), Processor.t()} | {:error, any()}
-
-  @doc """
-  Prepares the effective changeset from the input changeset.
-  """
-  @callback prepare_effective_changeset(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
-
-  @doc """
-  Applies the changes to the store.
-  """
-  @callback apply_changes(Processor.t()) :: {:ok, Processor.t()} | {:error, any()}
-
-  @doc """
-  Rolls back changes when an error occurs during the commit process.
-  """
-  @callback rollback_changes(Processor.t(), state :: atom()) ::
-              {:ok, Processor.t()} | {:error, any()}
 
   defmacro __using__(_opts) do
     quote do
@@ -74,33 +74,8 @@ defmodule Gno.CommitOperation.Type do
       end
 
       @impl true
-      def init(processor) do
-        Gno.CommitOperation.init(processor)
-      end
-
-      @impl true
-      def commit_id(processor) do
-        Gno.CommitOperation.commit_id(processor)
-      end
-
-      @impl true
-      def all_changes(processor) do
-        Gno.CommitOperation.all_changes(processor)
-      end
-
-      @impl true
-      def add_metadata(processor) do
-        Gno.CommitOperation.add_metadata(processor)
-      end
-
-      @impl true
-      def prepare_effective_changeset(processor) do
-        Gno.CommitOperation.prepare_effective_changeset(processor)
-      end
-
-      @impl true
-      def apply_changes(processor) do
-        Gno.CommitOperation.apply_changes(processor)
+      def handle_step(step, processor) do
+        Gno.CommitOperation.handle_step(step, processor)
       end
 
       @impl true
@@ -109,8 +84,18 @@ defmodule Gno.CommitOperation.Type do
       end
 
       @impl true
-      def rollback_changes(processor, state) do
-        Gno.CommitOperation.rollback_changes(processor, state)
+      def rollback(state, processor) do
+        Gno.CommitOperation.rollback(state, processor)
+      end
+
+      @impl true
+      def all_changes(processor) do
+        Gno.CommitOperation.all_changes(processor)
+      end
+
+      @impl true
+      def prepare_commit(processor) do
+        Gno.CommitOperation.prepare_commit(processor)
       end
 
       @impl true
@@ -118,14 +103,11 @@ defmodule Gno.CommitOperation.Type do
         Gno.CommitOperation.result(processor)
       end
 
-      defoverridable init: 1,
-                     commit_id: 1,
-                     all_changes: 1,
-                     add_metadata: 1,
-                     prepare_effective_changeset: 1,
-                     apply_changes: 1,
+      defoverridable handle_step: 2,
                      handle_empty_changeset: 3,
-                     rollback_changes: 2,
+                     rollback: 2,
+                     all_changes: 1,
+                     prepare_commit: 1,
                      result: 1
     end
   end

@@ -66,7 +66,6 @@ defmodule Gno.Commit.Processor do
   ```
   """
 
-  alias Gno.Service
   alias Gno.Commit.{ProcessorError, ProcessorRollbackError}
   alias Gno.{CommitMiddleware, Changeset, EffectiveChangeset}
   alias RDF.Graph
@@ -79,7 +78,6 @@ defmodule Gno.Commit.Processor do
             changeset: nil,
             effective_changeset: nil,
             sparql_update: nil,
-            commit_id: nil,
             additional_changes: %{},
             metadata: Graph.new(),
             assigns: %{},
@@ -104,7 +102,7 @@ defmodule Gno.Commit.Processor do
   @type assigns :: %{optional(atom) => any}
 
   @type t :: %__MODULE__{
-          service: Service.t(),
+          service: Gno.Service.t(),
           state: state(),
           input: any(),
           input_options: keyword(),
@@ -112,14 +110,13 @@ defmodule Gno.Commit.Processor do
           changeset: Gno.Changeset.t(),
           effective_changeset: Gno.EffectiveChangeset.t(),
           sparql_update: Update.t(),
-          commit_id: RDF.Resource.t(),
           additional_changes: %{optional(atom) => any()},
           metadata: Graph.t(),
           assigns: assigns(),
           errors: [any()]
         }
 
-  @activity_states %{
+  @step_states %{
     init: {:initializing, :initialized},
     preparation: {:preparing, :prepared},
     start_transaction: {:starting_transaction, :transaction_started},
@@ -128,16 +125,13 @@ defmodule Gno.Commit.Processor do
     post_commit: {:executing_post_commit, :completed}
   }
 
-  @rollback_update_states [
-    :changes_applied,
-    :ending_transaction
-  ]
-
   @no_rollback_states [
     :transaction_ended,
     :executing_post_commit,
     :completed
   ]
+
+  @commit_id_assign :commit_id
 
   import Gno.Utils, only: [bang!: 2]
 
@@ -162,42 +156,34 @@ defmodule Gno.Commit.Processor do
   end
 
   defp pre_commit(processor) do
-    with {:ok, processor} <- execute_activity(processor, :init, &operation_type(&1).init(&1)),
-         {:ok, processor} <-
-           execute_activity(processor, :preparation, fn processor ->
-             with {:ok, processor} <-
-                    operation_type(processor).prepare_effective_changeset(processor),
-                  {:ok, processor} <- operation_type(processor).add_metadata(processor) do
-               {:ok, processor}
-             end
-           end) do
+    with {:ok, processor} <- execute_step(processor, :init),
+         {:ok, processor} <- execute_step(processor, :preparation) do
       handle_empty_changeset(processor)
     end
   end
 
   defp commit(processor) do
-    with {:ok, processor} <- execute_activity(processor, :start_transaction),
-         {:ok, processor} <-
-           execute_activity(processor, :apply_changes, &operation_type(&1).apply_changes(&1)),
-         {:ok, processor} <- execute_activity(processor, :end_transaction) do
+    with {:ok, processor} <- execute_step(processor, :start_transaction),
+         {:ok, processor} <- execute_step(processor, :apply_changes),
+         {:ok, processor} <- execute_step(processor, :end_transaction) do
       {:ok, processor}
     end
   end
 
   defp post_commit(processor) do
-    with {:ok, processor} <- execute_activity(processor, :post_commit) do
+    with {:ok, processor} <- execute_step(processor, :post_commit) do
       operation_type(processor).result(processor)
     end
   end
 
-  defp execute_activity(processor, activity, activity_fn \\ nil) do
-    {executing_state, completed_state} = @activity_states[activity]
+  defp execute_step(processor, step) do
+    {executing_state, completed_state} = @step_states[step]
 
     case run_middleware(processor, executing_state) do
       {:ok, processor} ->
         processor = %{processor | state: executing_state}
 
-        with {:ok, processor} <- apply_activity_fun(processor, activity_fn),
+        with {:ok, processor} <- operation_type(processor).handle_step(step, processor),
              {:ok, processor} <- run_middleware(processor, completed_state) do
           {:ok, %{processor | state: completed_state}}
         else
@@ -209,9 +195,6 @@ defmodule Gno.Commit.Processor do
         handle_error(processor, reason)
     end
   end
-
-  defp apply_activity_fun(processor, nil), do: {:ok, processor}
-  defp apply_activity_fun(processor, activity_fn), do: activity_fn.(processor)
 
   defp run_middleware(processor, state) do
     Enum.reduce(processor.middlewares, {:ok, processor, []}, fn
@@ -299,11 +282,9 @@ defmodule Gno.Commit.Processor do
     end
   end
 
-  defp rollback_changes(processor, state) when state in @rollback_update_states do
-    operation_type(processor).rollback_changes(processor, state)
+  defp rollback_changes(processor, state) do
+    operation_type(processor).rollback(state, processor)
   end
-
-  defp rollback_changes(processor, _state), do: {:ok, processor}
 
   defp run_middleware_rollback(processor) do
     {processor, middlewares, errors} =
@@ -338,18 +319,21 @@ defmodule Gno.Commit.Processor do
 
   def operation(%__MODULE__{service: %{commit_operation: operation}}), do: operation
 
-  def commit_id(processor), do: operation_type(processor).commit_id(processor)
+  def commit_id(processor), do: processor.assigns[@commit_id_assign]
 
-  def update_commit_id(%__MODULE__{commit_id: nil} = processor, commit_id) do
-    %{processor | commit_id: commit_id}
+  def set_commit_id(processor, commit_id, update_metadata? \\ true)
+
+  def set_commit_id(processor, commit_id, false) do
+    assign(processor, @commit_id_assign, commit_id)
   end
 
-  def update_commit_id(processor, commit_id) do
-    %{
+  def set_commit_id(processor, commit_id, true) do
+    if previous_commit_id = processor.assigns[@commit_id_assign] do
+      update_metadata!(processor, &Graph.rename_resource(&1, previous_commit_id, commit_id))
+    else
       processor
-      | commit_id: commit_id,
-        metadata: Graph.rename_resource(processor.metadata, processor.commit_id, commit_id)
-    }
+    end
+    |> set_commit_id(commit_id, false)
   end
 
   def update_metadata(%__MODULE__{} = processor, %Graph{} = metadata) do

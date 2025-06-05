@@ -18,33 +18,40 @@ defmodule TestCommitOperation do
              default: "test"
   end
 
-  @impl true
-  def init(processor) do
-    with {:ok, processor} <- Gno.CommitOperation.init(processor) do
-      {:ok, Processor.assign(processor, :custom_init, true)}
-    end
-  end
-
-  @impl true
-  def commit_id(_processor) do
-    EX.customCommitId()
-  end
+  @commit_id EX.customCommitId()
 
   @impl true
   def all_changes(processor) do
     processor
     |> super()
     |> Processor.add_additional_changes(:repo,
-      add: RDF.graph(commit_id(processor) |> EX.customMetadata("test"))
+      add: RDF.graph(@commit_id |> EX.customMetadata("test"))
     )
   end
 
   @impl true
-  def add_metadata(processor) do
-    Processor.update_metadata(processor, fn metadata ->
+  def handle_step(:init, processor) do
+    with {:ok, processor} <- super(:init, processor) do
+      {:ok,
+       processor
+       |> Processor.set_commit_id(@commit_id, false)
+       |> Processor.assign(:custom_init, true)}
+    end
+  end
+
+  @impl true
+  def handle_step(step, processor), do: super(step, processor)
+
+  @impl true
+  def prepare_commit(processor) do
+    processor
+    |> Processor.set_commit_id(@commit_id)
+    |> Processor.update_metadata(fn metadata ->
       Graph.put_properties(
         metadata,
-        commit_id(processor) |> EX.customMetadata("test") |> PROV.endedAtTime(test_time())
+        @commit_id
+        |> EX.customMetadata("test")
+        |> PROV.endedAtTime(test_time())
       )
     end)
   end
