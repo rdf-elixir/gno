@@ -12,7 +12,7 @@ defmodule Gno.EffectiveChangeset.Query do
   def call(service, %Changeset{add: add, remove: remove, update: update, replace: replace}) do
     with {:ok, add_remove_change_graph} <-
            add_remove_query(add, remove, update, replace)
-           |> Service.handle_sparql(service, :dataset),
+           |> Service.handle_sparql(service),
          effective_add = effective_add(add, add_remove_change_graph),
          effective_update = effective_add(update, add_remove_change_graph),
          effective_replace = effective_add(replace, add_remove_change_graph),
@@ -46,7 +46,7 @@ defmodule Gno.EffectiveChangeset.Query do
     with {:ok, update_overwrite_graph} <-
            update
            |> update_overwrites_query()
-           |> Service.handle_sparql(service, :dataset) do
+           |> Service.handle_sparql(service) do
       {:ok, Graph.delete(update_overwrite_graph, update)}
     end
   end
@@ -57,7 +57,7 @@ defmodule Gno.EffectiveChangeset.Query do
     with {:ok, replace_overwrite_graph} <-
            replace
            |> replace_overwrites_query()
-           |> Service.handle_sparql(service, :dataset) do
+           |> Service.handle_sparql(service) do
       {:ok, Graph.delete(replace_overwrite_graph, replace)}
     end
   end

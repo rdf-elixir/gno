@@ -172,6 +172,144 @@ defmodule GnoTest do
     refute Gno.ask!("ASK { ?s ?p ?o }", source_opts)
   end
 
+  describe "operation helpers with :service and :store options" do
+    test "raises when both :service and :store are provided" do
+      service = Gno.service!()
+      store = Gno.store!()
+
+      assert_raise ArgumentError, "Cannot specify both :service and :store options", fn ->
+        Gno.ask("ASK { ?s ?p ?o }", service: service, store: store)
+      end
+    end
+
+    test "with :service option" do
+      service = Gno.service!()
+
+      assert RDF.graph([{EX.s1(), EX.p1(), "Default Service Data"}]) |> Gno.insert_data() == :ok
+      assert Gno.ask!("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }")
+
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", service: service) == {:ok, true}
+
+      assert {:ok, results} =
+               Gno.select("SELECT ?o WHERE { <#{EX.s1()}> <#{EX.p1()}> ?o }",
+                 service: service,
+                 graph: :dataset
+               )
+
+      assert length(results.results) == 1
+    end
+
+    test "with :store option" do
+      store = Gno.store!()
+
+      assert Gno.ask("ASK { ?s ?p ?o }", store: store, graph: nil) == {:ok, false}
+
+      graph_name = "http://example.com/test-graph"
+      assert Gno.ask("ASK { ?s ?p ?o }", store: store, graph: graph_name) == {:ok, false}
+
+      assert [{EX.s1(), EX.p1(), "Store Data"}]
+             |> RDF.graph()
+             |> Gno.insert_data!(store: store) == :ok
+
+      assert Gno.ask("ASK { ?s ?p ?o }", store: store, graph: nil) == {:ok, true}
+      assert Gno.ask("ASK { ?s ?p ?o }", store: store) == {:ok, true}
+      assert Gno.ask("ASK { ?s ?p ?o }", store: store, graph: graph_name) == {:ok, false}
+
+      assert [{EX.s1(), EX.p1(), "Store Data"}]
+             |> RDF.graph()
+             |> Gno.insert_data!(store: store, graph: graph_name) == :ok
+
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", store: store, graph: graph_name) ==
+               {:ok, true}
+    end
+
+    test "inter-graph operations with :service option" do
+      service = Gno.service!()
+
+      source_data = RDF.graph([{EX.s1(), EX.p1(), "Source Data"}])
+      assert Gno.insert_data(source_data, graph: :dataset) == :ok
+
+      assert Gno.add(:dataset, :repo, service: service) == :ok
+
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", service: service, graph: :repo) ==
+               {:ok, true}
+
+      assert Gno.clear(:all) == :ok
+
+      assert Gno.insert_data(source_data, graph: :dataset) == :ok
+      target_data = RDF.graph([{EX.s2(), EX.p2(), "Target Data"}])
+      assert Gno.insert_data(target_data, graph: :repo) == :ok
+
+      assert Gno.copy(:dataset, :repo, service: service) == :ok
+
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", service: service, graph: :repo) ==
+               {:ok, true}
+
+      refute Gno.ask!("ASK { <#{EX.s2()}> <#{EX.p2()}> ?o }", service: service, graph: :repo)
+    end
+
+    test "inter-graph operations with alternative :service option using different repository" do
+      # This test verifies that inter-graph operations use the repository from the 
+      # provided :service option for graph name resolution, not the manifest's repository
+
+      # Get the default service and repository
+      default_service = Gno.service!()
+      default_repo = default_service.repository
+
+      # Create an alternative repository with different graph naming
+      alt_repo = %{
+        default_repo
+        | __id__: RDF.iri("http://example.com/alt-repo"),
+          dataset: %{default_repo.dataset | __id__: RDF.iri("http://example.com/alt-dataset")}
+      }
+
+      alt_service = %{default_service | repository: alt_repo}
+
+      # Insert data into the alternative dataset graph directly
+      source_data = RDF.graph([{EX.s1(), EX.p1(), "Alt Service Data"}])
+      assert Gno.insert_data(source_data, service: alt_service, graph: :dataset) == :ok
+
+      # Verify data is in the alternative dataset
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
+               service: alt_service,
+               graph: :dataset
+             ) == {:ok, true}
+
+      # Now use add operation with the alternative service
+      # This should resolve :dataset to alt-dataset and :repo to alt-repo
+      assert Gno.add(:dataset, :repo, service: alt_service) == :ok
+
+      # Verify the data was copied to the alternative repo graph
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
+               service: alt_service,
+               graph: :repo
+             ) == {:ok, true}
+
+      expected_repo_graph = Gno.Repository.graph_name(alt_repo, :repo)
+
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
+               store: alt_service.store,
+               graph: expected_repo_graph
+             ) == {:ok, true}
+    end
+
+    test "inter-graph operations with :store option require concrete graph names" do
+      store = Gno.store!()
+
+      graph1 = "http://example.com/graph1"
+      graph2 = "http://example.com/graph2"
+
+      data = RDF.graph([{EX.s1(), EX.p1(), "Test Data"}])
+      operation = Gno.Store.SPARQL.Operation.insert_data!(data)
+      assert Gno.execute(operation, store: store, graph: graph1) == :ok
+
+      assert Gno.add(graph1, graph2, store: store) == :ok
+
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", store: store, graph: graph2) ==
+               {:ok, true}
+    end
+  end
+
   test "commit/2" do
     refute Gno.ask!("ASK { ?s ?p ?o }")
 
@@ -198,5 +336,38 @@ defmodule GnoTest do
 
     assert Gno.QueryUtils.graph_query() |> Gno.execute!() |> Graph.clear_prefixes() ==
              graph(EX.S1 |> EX.p1(EX.O1) |> EX.p2("foo"))
+  end
+
+  describe "commit functions with :service option" do
+    test "commit/2 with alternative :service option" do
+      alt_service = alt_service(Gno.service!())
+      description = EX.S1 |> EX.p1("Alt Commit Data")
+
+      assert {:ok, %Gno.Commit{}} = Gno.commit([add: description], service: alt_service)
+
+      assert Gno.ask("ASK { <#{RDF.iri(EX.S1)}> <#{EX.p1()}> ?o }",
+               service: alt_service,
+               graph: :dataset
+             ) ==
+               {:ok, true}
+
+      refute Gno.ask!("ASK { <#{RDF.iri(EX.S1)}> <#{EX.p1()}> ?o }", graph: :dataset)
+    end
+
+    test "effective_changeset/2 with alternative :service option" do
+      alt_service = alt_service(Gno.service!())
+      initial_data = EX.S1 |> EX.p1(EX.O1)
+
+      assert Gno.insert_data(initial_data, service: alt_service) == :ok
+
+      changes = [add: EX.S1 |> EX.p1([EX.O1, EX.O2])]
+
+      assert {:ok, %Gno.EffectiveChangeset{add: add_graph}} =
+               Gno.effective_changeset(changes, service: alt_service)
+
+      assert RDF.Graph.triple_count(add_graph) == 1
+      assert RDF.Graph.include?(add_graph, {EX.S1, EX.p1(), EX.O2})
+      refute RDF.Graph.include?(add_graph, {EX.S1, EX.p1(), EX.O1})
+    end
   end
 end

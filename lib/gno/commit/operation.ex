@@ -91,7 +91,7 @@ defmodule Gno.CommitOperation do
   def handle_step(:apply_changes, processor) do
     with {:ok, update} <-
            Update.build(processor.service.repository, Processor.all_changes(processor)),
-         :ok <- Service.handle_sparql(update, processor.service, nil) do
+         :ok <- Service.handle_sparql(update, processor.service) do
       {:ok, %Processor{processor | sparql_update: update}}
     end
   end
@@ -126,7 +126,7 @@ defmodule Gno.CommitOperation do
   def rollback(state, processor) when state in @rollback_update_states do
     with {:ok, update} <-
            Update.build_revert(processor.service.repository, Processor.all_changes(processor)),
-         :ok <- Service.handle_sparql(update, processor.service, nil) do
+         :ok <- Service.handle_sparql(update, processor.service) do
       {:ok, processor}
     end
   end

@@ -17,13 +17,13 @@ defmodule Gno.ServiceTest do
     end
   end
 
-  describe "handle/4" do
+  describe "handle_sparql/4" do
     test "default graph" do
       assert EX.S
              |> EX.p(EX.O)
              |> RDF.graph()
              |> Operation.insert_data!()
-             |> Service.handle_sparql(Manifest.service!(), nil) ==
+             |> Service.handle_sparql(Manifest.service!(), graph: nil) ==
                :ok
 
       assert {:ok,
@@ -38,7 +38,7 @@ defmodule Gno.ServiceTest do
               }} =
                "SELECT * WHERE { ?s ?p ?o . }"
                |> Operation.select!()
-               |> Service.handle_sparql(Manifest.service!(), nil)
+               |> Service.handle_sparql(Manifest.service!(), graph: nil)
     end
 
     test "named graph" do
@@ -46,7 +46,7 @@ defmodule Gno.ServiceTest do
              |> EX.p(EX.O)
              |> RDF.graph()
              |> Operation.insert_data!()
-             |> Service.handle_sparql(Manifest.service!(), :dataset) ==
+             |> Service.handle_sparql(Manifest.service!()) ==
                :ok
 
       assert {:ok,
@@ -61,7 +61,7 @@ defmodule Gno.ServiceTest do
               }} =
                "SELECT * WHERE { ?s ?p ?o . }"
                |> Operation.select!()
-               |> Service.handle_sparql(Manifest.service!(), :dataset)
+               |> Service.handle_sparql(Manifest.service!(), graph: :dataset)
 
       graph =
         EX.S2
@@ -70,13 +70,13 @@ defmodule Gno.ServiceTest do
 
       assert graph
              |> Operation.insert_data!()
-             |> Service.handle_sparql(Manifest.service!(), :repo) ==
+             |> Service.handle_sparql(Manifest.service!(), graph: :repo) ==
                :ok
 
       assert {:ok, result} =
                "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o . }"
                |> Operation.construct!()
-               |> Service.handle_sparql(Manifest.service!(), :repo)
+               |> Service.handle_sparql(Manifest.service!(), graph: :repo)
 
       # some triple stores (like Fuseki) add all known prefixes
       assert Graph.clear_prefixes(result) == graph

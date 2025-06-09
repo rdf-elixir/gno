@@ -24,6 +24,14 @@ defmodule Gno do
 
   The graph operation functions in this module accept the following options:
 
+  - `:service` - Use a specific service instead of the default one from the manifest. This allows
+    operations to target different repositories.
+
+  - `:store` - Use a specific store directly, bypassing service-level abstractions. When using
+    this option, the `:graph` option must specify concrete graph IRIs rather than symbolic
+    names like `:dataset` or `:repo`. 
+    This option is not supported on `commit/2` and `effective_changeset/2`.
+
   - `:graph` - The target graph for the operation, which is processed through `Gno.Repository.graph_name/2`
     to support special values like `:dataset` and `:repo`. Defaults to `:dataset` for most operations,
     except for `create/2`, `drop/2`, and `clear/2` which require an explicit graph argument and for
@@ -42,7 +50,7 @@ defmodule Gno do
   import RDF.Namespace
   act_as_namespace Gno.NS.Gno
 
-  alias Gno.{Service, Repository}
+  alias Gno.{Service, Repository, Store}
   alias Gno.Store.SPARQL.Operation
   import Gno.Utils, only: [bang!: 2]
 
@@ -95,18 +103,26 @@ defmodule Gno do
   """
   @spec execute(Operation.t(), keyword()) :: {:ok, any()} | {:error, any()}
   def execute(operation, opts \\ []) do
-    {graph, opts} = Keyword.pop(opts, :graph, default_graph(operation))
+    {service, opts} = Keyword.pop(opts, :service)
+    {store, opts} = Keyword.pop(opts, :store)
 
-    with {:ok, service} <- service(opts) do
-      Service.handle_sparql(operation, service, graph_name(graph), opts)
+    cond do
+      service && store ->
+        raise ArgumentError, "Cannot specify both :service and :store options"
+
+      store ->
+        {graph, opts} = Keyword.pop(opts, :graph)
+        Store.handle_sparql(operation, store, graph, opts)
+
+      service ->
+        Service.handle_sparql(operation, service, opts)
+
+      true ->
+        with {:ok, service} <- service(opts) do
+          Service.handle_sparql(operation, service, opts)
+        end
     end
   end
-
-  # Unfortunately, SPARQL UPDATE queries cannot be executed on a specific graph by default
-  defp default_graph(%Operation{type: :update, update_type: :query}), do: nil
-  # CREATE, DROP, and CLEAR operations require explicit graph arguments
-  defp default_graph(%Operation{name: name}) when name in [:create, :drop, :clear], do: nil
-  defp default_graph(_), do: :dataset
 
   @doc """
   Same as `execute/2` but raises on errors.
@@ -511,7 +527,7 @@ defmodule Gno do
       )
   """
   def add(source, target, opts \\ []) do
-    with {:ok, operation} <- Operation.add(graph_name(source), graph_name(target), opts) do
+    with {:ok, operation} <- Operation.add(source, target, opts) do
       execute(operation, opts)
     end
   end
@@ -543,7 +559,7 @@ defmodule Gno do
 
   """
   def copy(source, target, opts \\ []) do
-    with {:ok, operation} <- Operation.copy(graph_name(source), graph_name(target), opts) do
+    with {:ok, operation} <- Operation.copy(source, target, opts) do
       execute(operation, opts)
     end
   end
@@ -579,7 +595,7 @@ defmodule Gno do
 
   """
   def move(source, target, opts \\ []) do
-    with {:ok, operation} <- Operation.move(graph_name(source), graph_name(target), opts) do
+    with {:ok, operation} <- Operation.move(source, target, opts) do
       execute(operation, opts)
     end
   end
@@ -611,7 +627,7 @@ defmodule Gno do
       {:ok, %Gno.EffectiveChangeset{add: RDF.graph(EX.S |> EX.p(EX.O2))}}
   """
   def effective_changeset(changes, opts \\ []) do
-    with {:ok, service} <- service(opts) do
+    with {:ok, service, _opts} <- resolve_service(opts) do
       Gno.EffectiveChangeset.Query.call(service, changes)
     end
   end
@@ -620,10 +636,19 @@ defmodule Gno do
     do: bang!(&effective_changeset/2, [changes, opts])
 
   def commit(changes, opts \\ []) do
-    with {:ok, service} <- service(opts),
+    with {:ok, service, opts} <- resolve_service(opts),
          {:ok, processor} <- Gno.Commit.Processor.new(service),
          {:ok, commit, _processor} <- Gno.Commit.Processor.execute(processor, changes, opts) do
       {:ok, commit}
+    end
+  end
+
+  def commit!(changes, opts \\ []), do: bang!(&commit/2, [changes, opts])
+
+  defp resolve_service(opts) do
+    case Keyword.pop(opts, :service) do
+      {nil, opts} -> with {:ok, service} <- service(opts), do: {:ok, service, opts}
+      {service, opts} -> {:ok, service, opts}
     end
   end
 end
