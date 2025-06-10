@@ -30,4 +30,8 @@ defmodule Gno.Repository do
   def graph_name(repository, graph_id) do
     graph_id(repository, graph_id)
   end
+
+  def graphs(repository) do
+    [graph_name(repository, :dataset), graph_name(repository, :repo)]
+  end
 end

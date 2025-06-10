@@ -308,6 +308,31 @@ defmodule GnoTest do
       assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", store: store, graph: graph2) ==
                {:ok, true}
     end
+
+    test "create/drop/clear with :service as graph value" do
+      test_data = RDF.graph([{EX.s1(), EX.p1(), "Service Graph Test"}])
+
+      assert Gno.create(:service) == :ok
+
+      assert Gno.insert_data(test_data, graph: :dataset) == :ok
+      assert Gno.insert_data(test_data, graph: :repo) == :ok
+
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :dataset) == {:ok, true}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo) == {:ok, true}
+
+      assert Gno.clear(:service) == :ok
+
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :dataset) == {:ok, false}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo) == {:ok, false}
+
+      assert Gno.insert_data(test_data, graph: :dataset) == :ok
+      assert Gno.insert_data(test_data, graph: :repo) == :ok
+
+      assert Gno.drop(:service) == :ok
+
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :dataset) == {:ok, false}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo) == {:ok, false}
+    end
   end
 
   test "commit/2" do

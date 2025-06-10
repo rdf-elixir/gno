@@ -1,7 +1,7 @@
 defmodule Gno.Service do
   use Grax.Schema
 
-  alias Gno.Store
+  alias Gno.{Repository, Store}
   alias Gno.Store.SPARQL.Operation
   alias Gno.CommitOperation
 
@@ -77,32 +77,41 @@ defmodule Gno.Service do
   defp normalize_commit_operation(commit_operation, _type, _id), do: {:ok, commit_operation}
 
   # We do not rely on getting concrete structs here, but accept any Grax schema that subclasses
-  def handle_sparql(operation, %{store: store, repository: repository}, opts \\ []) do
+  def handle_sparql(operation, %{store: store} = service, opts \\ []) do
     {graph, opts} = Keyword.pop(opts, :graph, default_graph(operation))
 
     operation
-    |> resolve_operation_graphs(repository)
-    |> Store.handle_sparql(store, graph_name(repository, graph), opts)
+    |> resolve_operation_graphs(service)
+    |> Store.handle_sparql(store, graph_name(service, graph, operation.name), opts)
   end
 
   # Unfortunately, SPARQL UPDATE queries cannot be executed on a specific graph by default
   defp default_graph(%Operation{type: :update, update_type: :query}), do: nil
   defp default_graph(_), do: :dataset
 
-  defp graph_name(%repository_type{} = repository, graph) do
+  defp graph_name(%_service_type{} = service, :service, operation_name)
+       when operation_name in [:create, :drop, :clear] do
+    graphs(service)
+  end
+
+  defp graph_name(%_service_type{repository: %repository_type{} = repository}, graph, _) do
     repository_type.graph_name(repository, graph)
   end
 
   defp resolve_operation_graphs(
          %Operation{name: name, payload: [from: from, to: to]} = operation,
-         repository
+         service
        )
        when name in [:add, :copy, :move] do
     %{
       operation
-      | payload: [from: graph_name(repository, from), to: graph_name(repository, to)]
+      | payload: [from: graph_name(service, from, name), to: graph_name(service, to, name)]
     }
   end
 
   defp resolve_operation_graphs(operation, _repository), do: operation
+
+  def graphs(%_service_type{repository: repository}) do
+    Repository.graphs(repository)
+  end
 end
