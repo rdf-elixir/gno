@@ -127,4 +127,49 @@ defmodule Gno.Store do
   def handle_sparql(operation, %store_adapter{} = store, graph_name, opts) do
     store_adapter.handle_sparql(operation, store, graph_name, opts)
   end
+
+  @impl true
+  def setup(store, opts \\ [])
+  def setup(%__MODULE__{}, _opts), do: :ok
+  def setup(%store_adapter{} = store, opts), do: store_adapter.setup(store, opts)
+
+  @impl true
+  def teardown(store, opts \\ [])
+  def teardown(%__MODULE__{}, _opts), do: :ok
+  def teardown(%store_adapter{} = store, opts), do: store_adapter.teardown(store, opts)
+
+  @impl true
+  def check_availability(store, opts \\ [])
+  def check_availability(%__MODULE__{} = store, opts), do: do_check_availability(store, opts)
+
+  def check_availability(%store_adapter{} = store, opts),
+    do: store_adapter.check_availability(store, opts)
+
+  @impl true
+  def check_setup(store, opts \\ [])
+
+  def check_setup(%__MODULE__{} = store, opts) do
+    if Keyword.get(opts, :check_availability, true) do
+      do_check_availability(store, opts)
+    else
+      :ok
+    end
+  end
+
+  def check_setup(%store_adapter{} = store, opts), do: store_adapter.check_setup(store, opts)
+
+  @doc false
+  def do_check_availability(store, opts) do
+    "ASK { ?s ?p ?o }"
+    |> Gno.Store.SPARQL.Operation.ask!()
+    |> handle_sparql(store, nil, opts)
+    |> case do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        {:error,
+         Gno.Store.UnavailableError.exception(reason: :query_failed, store: store, error: reason)}
+    end
+  end
 end

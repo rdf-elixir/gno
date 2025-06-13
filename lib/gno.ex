@@ -645,6 +645,14 @@ defmodule Gno do
 
   def commit!(changes, opts \\ []), do: bang!(&commit/2, [changes, opts])
 
+  def setup(opts \\ []) do
+    with {:ok, service, opts} <- resolve_service(opts) do
+      Gno.Service.Setup.setup(service, opts)
+    end
+  end
+
+  def setup!(opts \\ []), do: bang!(&setup/1, [opts])
+
   defp resolve_service(opts) do
     case Keyword.pop(opts, :service) do
       {nil, opts} -> with {:ok, service} <- service(opts), do: {:ok, service, opts}

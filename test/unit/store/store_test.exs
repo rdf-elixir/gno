@@ -5,6 +5,9 @@ defmodule Gno.StoreTest do
 
   alias Gno.Store.InvalidEndpointError
   alias Gno.Store.SPARQL.Operation
+  alias Gno.Store.Adapters.Fuseki
+
+  @configured_store_adapter configured_store_adapter()
 
   # These tests serve as integration tests for
   # - Gno.Store
@@ -172,5 +175,52 @@ defmodule Gno.StoreTest do
     assert %Store{graph_store_endpoint: EX.graph_store_endpoint()}
            |> Store.graph_store_endpoint() ==
              {:ok, to_string(EX.graph_store_endpoint())}
+  end
+
+  describe "check_availability/2" do
+    test "returns :ok when store is reachable" do
+      assert :ok = Store.check_availability(Manifest.store!())
+    end
+
+    test "returns error when store is not reachable" do
+      store = %{Manifest.store!() | host: "nonexistent.localhost", port: 99999}
+
+      expected_reason =
+        case @configured_store_adapter do
+          Fuseki -> :server_unreachable
+          _ -> :query_failed
+        end
+
+      assert {:error, %Gno.Store.UnavailableError{reason: ^expected_reason}} =
+               Store.check_availability(store)
+    end
+  end
+
+  describe "check_setup/2" do
+    test "returns :ok when dataset exists and is functional" do
+      store = Manifest.store!()
+      assert :ok = Store.check_setup(store, [])
+    end
+
+    test "returns error when store is not reachable" do
+      store = %{Manifest.store!() | host: "nonexistent.localhost", port: 99999}
+
+      expected_reason =
+        case @configured_store_adapter do
+          Fuseki -> :server_unreachable
+          _ -> :query_failed
+        end
+
+      assert {:error, %Gno.Store.UnavailableError{reason: ^expected_reason}} =
+               Store.check_setup(store, [])
+    end
+
+    if @configured_store_adapter in [Fuseki] do
+      test "returns error when store is not reachable with check_availability: false" do
+        store = %{Manifest.store!() | host: "nonexistentlocalhost", port: 99999}
+
+        assert {:error, _} = Store.check_setup(store, check_availability: false)
+      end
+    end
   end
 end

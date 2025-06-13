@@ -82,4 +82,60 @@ defmodule Gno.ServiceTest do
       assert Graph.clear_prefixes(result) == graph
     end
   end
+
+  describe "check_setup/1" do
+    @describetag skip: !fuseki_available?(fuseki_store())
+
+    setup context do
+      test_name = context.test |> Atom.to_string() |> String.replace(~r/[^a-zA-Z0-9]/, "-")
+      dataset_name = "check-test-#{test_name}"
+      test_store = fuseki_store(dataset_name)
+      test_service = alt_service(service(), store: test_store)
+
+      on_exit(fn ->
+        Gno.Store.Adapters.Fuseki.teardown(test_store, [])
+      end)
+
+      {:ok, service: test_service, store: test_store}
+    end
+
+    test "returns error before setup", %{service: service} do
+      # Prepare dataset so the query can execute, but don't setup repository
+      :ok = Gno.Store.Adapters.Fuseki.setup(service.store, [])
+      assert {:error, :repository_not_found} = Service.check_setup(service)
+    end
+
+    test "returns :ok after setup", %{service: service} do
+      assert {:ok, _} = Gno.Service.Setup.setup(service)
+      assert :ok = Service.check_setup(service)
+    end
+  end
+
+  describe "validate_setup/1" do
+    @describetag skip: !fuseki_available?(fuseki_store())
+
+    setup context do
+      test_name = context.test |> Atom.to_string() |> String.replace(~r/[^a-zA-Z0-9]/, "-")
+      dataset_name = "validate-test-#{test_name}"
+      test_store = fuseki_store(dataset_name)
+      test_service = alt_service(service(), store: test_store)
+
+      on_exit(fn ->
+        Gno.Store.Adapters.Fuseki.teardown(test_store, [])
+      end)
+
+      {:ok, service: test_service, store: test_store}
+    end
+
+    test "returns error before setup", %{service: service} do
+      # Prepare dataset so the query can execute, but don't setup repository
+      :ok = Gno.Store.Adapters.Fuseki.setup(service.store, [])
+      assert {:error, :invalid_repository_structure} = Service.validate_setup(service)
+    end
+
+    test "returns :ok after setup", %{service: service} do
+      assert {:ok, _} = Gno.Service.Setup.setup(service)
+      assert :ok = Service.validate_setup(service)
+    end
+  end
 end

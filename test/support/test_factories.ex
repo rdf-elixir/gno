@@ -101,6 +101,7 @@ defmodule Gno.TestFactories do
   def alt_service(service, attrs \\ []) do
     repo_id = Keyword.get(attrs, :repo_id, :alt_repo)
     dataset_id = Keyword.get(attrs, :dataset_id, :alt_dataset)
+    store = Keyword.get(attrs, :store, service.store)
 
     %{
       service
@@ -108,8 +109,22 @@ defmodule Gno.TestFactories do
           service.repository
           | __id__: id(repo_id),
             dataset: %{service.repository.dataset | __id__: id(dataset_id)}
-        }
+        },
+        store: store
     }
+  end
+
+  def unavailable_fuseki do
+    Gno.Store.Adapters.Fuseki.build!(
+      ~I<http://example.com/UnreachableFuseki>,
+      host: "unreachable.example.com",
+      port: 9999,
+      dataset: "unreachable-dataset"
+    )
+  end
+
+  def fuseki_store(dataset_name \\ "test-dataset") do
+    Gno.Store.Adapters.Fuseki.build!(~I<http://example.com/TestFuseki>, dataset: dataset_name)
   end
 
   def repository(id \\ :repository, attrs \\ []) do

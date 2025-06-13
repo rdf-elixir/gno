@@ -30,6 +30,9 @@ defmodule Gno.MixProject do
       # we are using YuriTemplate, because we have it already as a dependency of Grax
       {:yuri_template, "~> 1.1"},
       {:uniq, "~> 0.6"},
+      {:nimble_options, "~> 1.1"},
+      {:tesla, "~> 1.2"},
+      {:jason, "~> 1.4"},
       {:hackney, "~> 1.15", only: [:dev, :test]}
     ]
   end

@@ -121,3 +121,66 @@ defmodule Gno.Commit.ProcessorRollbackError do
     "Commit processing rollback error (#{processor.state}): #{inspect(error)}"
   end
 end
+
+defmodule Gno.Service.SetupError do
+  @moduledoc """
+  Error raised during setup operations.
+  """
+
+  defexception [:reason, :service]
+
+  @type t :: %__MODULE__{
+          reason: term(),
+          service: Gno.Service.t() | nil
+        }
+
+  def message(%{reason: :already_setup, service: service}) do
+    "Repository #{service.repository.__id__} is already set up"
+  end
+
+  def message(%{reason: reason}) do
+    "Setup failed: #{inspect(reason)}"
+  end
+end
+
+defmodule Gno.Store.UnavailableError do
+  @moduledoc """
+  Raised when a store is unavailable for operations.
+  """
+
+  defexception [:reason, :store, :error]
+
+  @type t :: %__MODULE__{
+          reason: any,
+          store: Gno.Store.t(),
+          error: term() | nil
+        }
+
+  def message(%{reason: :server_unreachable, store: store}) do
+    "Store server unreachable: #{store.endpoint}"
+  end
+
+  def message(%{reason: :dataset_not_found, store: store}) do
+    "Dataset not found on store: #{store.dataset} at #{store.endpoint}"
+  end
+
+  def message(%{reason: :permission_denied, store: store}) do
+    "Permission denied for store: #{store.endpoint}"
+  end
+
+  def message(%{reason: :query_failed, store: store, error: error}) do
+    "Query failed on store #{store.endpoint}: #{inspect(error)}"
+  end
+
+  def message(%{reason: :admin_query_failed, store: store, error: error}) do
+    "Admin query failed on store #{store.endpoint}: #{inspect(error)}"
+  end
+
+  def message(%{reason: reason, store: store, error: nil}) do
+    "Store unavailable (#{reason}): #{store.endpoint}"
+  end
+
+  def message(%{reason: reason, store: store, error: error}) do
+    "Store unavailable (#{reason}): #{store.endpoint}: #{inspect(error)}"
+  end
+end

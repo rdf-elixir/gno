@@ -15,6 +15,10 @@ defmodule Gno.StoreCase do
     :ok = Gno.drop(:all)
   end
 
+  def fuseki_available?(store) do
+    Gno.Store.Adapters.Fuseki.ping?(store)
+  end
+
   def without_prefixes({:ok, value}) do
     {:ok, without_prefixes(value)}
   end

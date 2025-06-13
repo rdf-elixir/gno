@@ -1,7 +1,7 @@
 defmodule Gno.Service do
   use Grax.Schema
 
-  alias Gno.{Repository, Store}
+  alias Gno.Store
   alias Gno.Store.SPARQL.Operation
   alias Gno.CommitOperation
 
@@ -89,9 +89,9 @@ defmodule Gno.Service do
   defp default_graph(%Operation{type: :update, update_type: :query}), do: nil
   defp default_graph(_), do: :dataset
 
-  defp graph_name(%_service_type{} = service, :service, operation_name)
+  defp graph_name(%service_type{} = service, :service, operation_name)
        when operation_name in [:create, :drop, :clear] do
-    graphs(service)
+    service_type.graphs(service)
   end
 
   defp graph_name(%_service_type{repository: %repository_type{} = repository}, graph, _) do
@@ -111,7 +111,48 @@ defmodule Gno.Service do
 
   defp resolve_operation_graphs(operation, _repository), do: operation
 
-  def graphs(%_service_type{repository: repository}) do
-    Repository.graphs(repository)
+  def graphs(%_service_type{repository: %repository_type{} = repository}) do
+    repository_type.graphs(repository)
+  end
+
+  @doc """
+  Checks if the service's repository exists in its store.
+  """
+  @spec check_setup(t()) :: :ok | {:error, term()}
+  def check_setup(%service_type{} = service) do
+    """
+    #{RDF.prefix_map(gno: Gno) |> RDF.PrefixMap.to_sparql()}
+    ASK {
+      <#{service.repository.__id__}> gno:repositoryDataset ?dataset .
+    }
+    """
+    |> Operation.ask!()
+    |> service_type.handle_sparql(service, graph: :repo)
+    |> case do
+      {:ok, %SPARQL.Query.Result{results: true}} -> :ok
+      {:ok, %SPARQL.Query.Result{results: false}} -> {:error, :repository_not_found}
+      {:error, reason} -> {:error, {:query_failed, reason}}
+    end
+  end
+
+  @doc """
+  Validates basic setup integrity.
+  """
+  @spec validate_setup(t()) :: :ok | {:error, term()}
+  def validate_setup(%service_type{} = service) do
+    """
+    #{RDF.prefix_map(gno: Gno) |> RDF.PrefixMap.to_sparql()}
+    ASK {
+      <#{service.repository.__id__}> gno:repositoryDataset ?dataset .
+      ?dataset a gno:Dataset .
+    }
+    """
+    |> Operation.ask!()
+    |> service_type.handle_sparql(service, graph: :repo)
+    |> case do
+      {:ok, %SPARQL.Query.Result{results: true}} -> :ok
+      {:ok, %SPARQL.Query.Result{results: false}} -> {:error, :invalid_repository_structure}
+      {:error, reason} -> {:error, {:query_failed, reason}}
+    end
   end
 end

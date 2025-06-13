@@ -22,6 +22,27 @@ defmodule Gno.Store.Adapter do
   @callback handle_sparql(Operation.t(), t(), graph_name(), keyword) ::
               {:ok, result()} | :ok | {:error, any}
 
+  @doc """
+  Store-specific preparation before repository initialization.
+  E.g., creating datasets, setting permissions, etc.
+  """
+  @callback setup(t(), keyword()) :: :ok | {:error, term()}
+
+  @doc """
+  Store-specific cleanup on setup failure.
+  """
+  @callback teardown(t(), keyword()) :: :ok | {:error, term()}
+
+  @doc """
+  Check store availability.
+  """
+  @callback check_availability(t(), keyword()) :: :ok | {:error, Gno.Store.UnavailableError.t()}
+
+  @doc """
+  Check if store is set up (dataset exists and is functional).
+  """
+  @callback check_setup(t(), keyword()) :: :ok | {:error, Gno.Store.UnavailableError.t()}
+
   defmacro __using__(adapter_spec) do
     {dataset_endpoint_segment_template, adapter_spec} =
       Keyword.pop(adapter_spec, :dataset_endpoint_segment_template)
@@ -127,7 +148,35 @@ defmodule Gno.Store.Adapter do
         GenSPARQL.handle(operation, adapter, graph_name, opts)
       end
 
-      defoverridable handle_sparql: 3, handle_sparql: 4
+      @impl true
+      def setup(_adapter, _opts \\ []), do: :ok
+
+      @impl true
+      def teardown(_adapter, _opts \\ []), do: :ok
+
+      @impl true
+      def check_availability(adapter, opts \\ []),
+        do: Gno.Store.do_check_availability(adapter, opts)
+
+      @impl true
+      def check_setup(adapter, opts \\ []) do
+        if Keyword.get(opts, :check_availability, true) do
+          check_availability(adapter, opts)
+        else
+          :ok
+        end
+      end
+
+      defoverridable handle_sparql: 3,
+                     handle_sparql: 4,
+                     setup: 1,
+                     setup: 2,
+                     teardown: 1,
+                     teardown: 2,
+                     check_availability: 1,
+                     check_availability: 2,
+                     check_setup: 1,
+                     check_setup: 2
     end
   end
 
