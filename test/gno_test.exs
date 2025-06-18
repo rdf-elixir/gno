@@ -395,4 +395,54 @@ defmodule GnoTest do
       refute RDF.Graph.include?(add_graph, {EX.S1, EX.p1(), EX.O1})
     end
   end
+
+  describe "graph/2" do
+    test "fetches dataset graph with :dataset atom" do
+      test_data = RDF.graph([{EX.s1(), EX.p1(), "Dataset Content"}])
+      assert Gno.insert_data(test_data, graph: :dataset) == :ok
+
+      assert Gno.graph(:dataset) |> without_prefixes() == {:ok, test_data}
+    end
+
+    test "fetches repository graph with :repo atom" do
+      assert {:ok, _} = Gno.setup()
+      assert {:ok, graph} = Gno.graph(:repo)
+      assert RDF.Graph.describes?(graph, Gno.repository!().__id__)
+    end
+
+    test "fetches specific graph by IRI" do
+      graph_iri = "http://example.com/test-graph"
+      test_data = RDF.graph([{EX.s1(), EX.p1(), "Specific Graph"}])
+
+      assert Gno.insert_data(test_data, graph: graph_iri) == :ok
+
+      assert Gno.graph(graph_iri) |> without_prefixes() == {:ok, test_data}
+      assert Gno.graph(RDF.iri(graph_iri)) |> without_prefixes() == {:ok, test_data}
+    end
+
+    test "works with :service option" do
+      service = Gno.service!()
+      test_data = RDF.graph([{EX.s1(), EX.p1(), "Service Graph"}])
+
+      assert Gno.insert_data(test_data, service: service, graph: :dataset) == :ok
+
+      assert Gno.graph(:dataset, service: service) |> without_prefixes() == {:ok, test_data}
+    end
+
+    test "works with :store option and concrete graph IRI" do
+      store = Gno.store!()
+      graph_iri = "http://example.com/store-graph"
+      test_data = RDF.graph([{EX.s1(), EX.p1(), "Store Graph"}])
+
+      assert Gno.insert_data(test_data, store: store, graph: graph_iri) == :ok
+
+      assert {:ok, graph} = Gno.graph(graph_iri, store: store)
+      assert RDF.Graph.include?(graph, {EX.s1(), EX.p1(), ~L"Store Graph"})
+    end
+
+    test "returns empty graph when no data" do
+      assert {:ok, graph} = Gno.graph(:dataset)
+      assert RDF.Graph.triple_count(graph) == 0
+    end
+  end
 end

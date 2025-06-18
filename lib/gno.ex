@@ -74,8 +74,41 @@ defmodule Gno do
   defdelegate repository(opts \\ []), to: Gno.Manifest
   defdelegate repository!(opts \\ []), to: Gno.Manifest
 
-  defdelegate dataset(opts \\ []), to: Gno.Manifest
-  defdelegate dataset!(opts \\ []), to: Gno.Manifest
+  @doc """
+  Returns the specified graph(s) from the store.
+
+  ## Arguments
+
+    - `graph_spec` - Can be:
+      - Any atom value supported by `Repository.graph_name/2` (e.g., `:dataset`, `:repo`)
+      - A single graph IRI - Returns that specific graph
+
+    Note: The available atom values depend on the Repository implementation and can be
+    extended by subclasses overriding `graph_name/2`.
+
+  ## Examples
+
+      # Get repository metadata graph
+      {:ok, graph} = Gno.graph(:repo)
+      
+      # Get dataset content
+      {:ok, graph} = Gno.graph(:dataset)
+      
+      # Get specific graph by IRI
+      {:ok, graph} = Gno.graph("http://example.com/my-graph")
+  """
+  @spec graph(atom() | RDF.IRI.coercible(), keyword()) ::
+          {:ok, RDF.Graph.t()} | {:error, any()}
+  def graph(graph, opts \\ [])
+
+  def graph(graph, opts) do
+    execute(Gno.QueryUtils.graph_query(), Keyword.put(opts, :graph, graph))
+  end
+
+  @doc """
+  Same as `graph/2` but raises on errors.
+  """
+  def graph!(graph_spec, opts \\ []), do: bang!(&graph/2, [graph_spec, opts])
 
   def graph_name(graph_id \\ :dataset, opts \\ []) do
     Repository.graph_name(repository!(opts), graph_id)
