@@ -138,4 +138,70 @@ defmodule Gno.ServiceTest do
       assert :ok = Service.validate_setup(service)
     end
   end
+
+  describe "fetch_repository/2" do
+    @describetag skip: !fuseki_available?(fuseki_store())
+
+    setup context do
+      test_name = context.test |> Atom.to_string() |> String.replace(~r/[^a-zA-Z0-9]/, "-")
+      dataset_name = "fetch-repo-test-#{test_name}"
+      test_store = fuseki_store(dataset_name)
+      test_service = alt_service(service(), store: test_store)
+
+      on_exit(fn ->
+        Gno.Store.Adapters.Fuseki.teardown(test_store, [])
+      end)
+
+      {:ok, service: test_service, store: test_store}
+    end
+
+    test "returns error before setup", %{service: service} do
+      # Prepare dataset so the query can execute, but don't setup repository
+      :ok = Gno.Store.Adapters.Fuseki.setup(service.store, [])
+
+      assert {:error, %Grax.ValidationError{}} = Service.fetch_repository(service)
+    end
+
+    test "fetches complete repository after setup", %{service: service} do
+      assert {:ok, _} = Gno.Service.Setup.setup(service)
+
+      assert {:ok, repository} = Service.fetch_repository(service)
+      assert repository == service.repository
+    end
+  end
+
+  describe "fetch_repository_graph/2" do
+    @describetag skip: !fuseki_available?(fuseki_store())
+
+    setup context do
+      test_name = context.test |> Atom.to_string() |> String.replace(~r/[^a-zA-Z0-9]/, "-")
+      dataset_name = "fetch-repo-graph-test-#{test_name}"
+      test_store = fuseki_store(dataset_name)
+      test_service = alt_service(service(), store: test_store)
+
+      on_exit(fn ->
+        Gno.Store.Adapters.Fuseki.teardown(test_store, [])
+      end)
+
+      {:ok, service: test_service, store: test_store}
+    end
+
+    test "returns empty graph before setup", %{service: service} do
+      :ok = Gno.Store.Adapters.Fuseki.setup(service.store)
+
+      assert {:ok, graph} = Service.fetch_repository_graph(service)
+
+      assert RDF.Graph.triple_count(graph) == 0
+    end
+
+    test "returns populated graph after setup", %{service: service} do
+      assert {:ok, _} = Gno.Service.Setup.setup(service)
+
+      assert {:ok, graph} = Service.fetch_repository_graph(service)
+
+      assert RDF.Graph.triple_count(graph) > 0
+      assert RDF.Graph.describes?(graph, service.repository.__id__)
+      assert RDF.Graph.describes?(graph, service.repository.dataset.__id__)
+    end
+  end
 end

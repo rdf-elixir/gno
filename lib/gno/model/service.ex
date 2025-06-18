@@ -155,4 +155,29 @@ defmodule Gno.Service do
       {:error, reason} -> {:error, {:query_failed, reason}}
     end
   end
+
+  @doc false
+  @spec with_stored_repository(t(), keyword()) :: {:ok, t()} | {:error, term()}
+  def with_stored_repository(%_service_type{} = service, opts \\ []) do
+    with {:ok, repository} <- fetch_repository(service, opts) do
+      {:ok, %{service | repository: repository}}
+    end
+  end
+
+  @doc false
+  @spec fetch_repository(t(), keyword()) :: {:ok, Repository.t()} | {:error, term()}
+  def fetch_repository(%_service_type{repository: %repository_type{}} = service, opts \\ []) do
+    depth = Keyword.get(opts, :depth, 99)
+
+    with {:ok, graph} <- fetch_repository_graph(service, opts),
+         {:ok, repository} <- repository_type.load(graph, service.repository.__id__, depth: depth) do
+      {:ok, repository}
+    end
+  end
+
+  @doc false
+  @spec fetch_repository_graph(t(), keyword()) :: {:ok, RDF.Graph.t()} | {:error, term()}
+  def fetch_repository_graph(%service_type{} = service, _opts \\ []) do
+    service_type.handle_sparql(Gno.QueryUtils.graph_query(), service, graph: :repo)
+  end
 end
