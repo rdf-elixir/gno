@@ -1,0 +1,16 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gno: <https://w3id.org/gno#> .
+@prefix ex: <http://example.com/> .
+
+_:service-manifest {
+    ex:Service a gno:Service
+        ; gno:serviceCommitOperation [
+            a ex:TestCommitOperation
+            ; gno:commitMiddleware (
+                [ a gno:CommitLogger ; gno:commitLogStates "all" ]
+                [ a ex:TestStateFlowMiddleware ; rdfs:label "first" ]
+                [ a ex:TestStateFlowMiddleware ; rdfs:label "second" ]
+            )
+        ]
+        .
+}

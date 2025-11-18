@@ -1,14 +1,14 @@
 defmodule Gno.Service do
-  use Grax.Schema
+  use DCATR.Service.Type
 
   alias Gno.Store
   alias Gno.Store.SPARQL.Operation
   alias Gno.CommitOperation
 
   import Gno.Utils, only: [bang!: 2]
+  import RDF.Guards
 
-  schema Gno.Service do
-    link repository: Gno.serviceRepository(), type: Gno.Repository, required: true
+  schema Gno.Service < DCATR.Service do
     link store: Gno.serviceStore(), type: Gno.Store, required: true
     link commit_operation: Gno.serviceCommitOperation(), type: Gno.CommitOperation
   end
@@ -78,42 +78,64 @@ defmodule Gno.Service do
 
   # We do not rely on getting concrete structs here, but accept any Grax schema that subclasses
   def handle_sparql(operation, %{store: store} = service, opts \\ []) do
-    {graph, opts} = Keyword.pop(opts, :graph, default_graph(operation))
+    {graph, opts} = Keyword.pop(opts, :graph, default_graph_for_operation(operation))
 
     operation
-    |> resolve_operation_graphs(service)
-    |> Store.handle_sparql(store, graph_name(service, graph, operation.name), opts)
+    |> resolve_operation_graphs(service, opts)
+    |> Store.handle_sparql(
+      store,
+      operation_graph_name(service, graph, operation.name, opts),
+      opts
+    )
   end
 
   # Unfortunately, SPARQL UPDATE queries cannot be executed on a specific graph by default
-  defp default_graph(%Operation{type: :update, update_type: :query}), do: nil
-  defp default_graph(_), do: :dataset
+  defp default_graph_for_operation(%Operation{type: :update, update_type: :query}), do: nil
+  defp default_graph_for_operation(_), do: Gno.default_target_graph()
 
-  defp graph_name(%service_type{} = service, :service, operation_name)
-       when operation_name in [:create, :drop, :clear] do
-    service_type.graphs(service)
+  @impl true
+  def graph_name(service, id_or_selector, opts \\ [])
+  def graph_name(_service, :all, _), do: :all
+  def graph_name(service, id_or_selector, opts), do: super(service, id_or_selector, opts)
+
+  defp strict_graph_name_mode(opts) do
+    Keyword.get(opts, :strict, Application.get_env(:gno, :strict_graph_name, false))
   end
 
-  defp graph_name(%_service_type{repository: %repository_type{} = repository}, graph, _) do
-    repository_type.graph_name(repository, graph)
+  defp operation_graph_name(service, :service, :create, opts) do
+    operation_graph_name(service, :service, :clear, opts) -- [:default]
+  end
+
+  defp operation_graph_name(%service_type{} = service, :service, operation_name, opts)
+       when operation_name in [:drop, :clear] do
+    strict = strict_graph_name_mode(opts)
+
+    service_type.graphs(service)
+    |> Enum.map(&service_type.graph_name(service, &1, strict: strict))
+    # Graphs with bnodes are not supported by SPARQL and per se only in the manifest
+    |> Enum.reject(&is_rdf_bnode/1)
+  end
+
+  defp operation_graph_name(%service_type{} = service, graph, _, opts) do
+    service_type.graph_name(service, graph, strict: strict_graph_name_mode(opts))
   end
 
   defp resolve_operation_graphs(
          %Operation{name: name, payload: [from: from, to: to]} = operation,
-         service
+         service,
+         opts
        )
        when name in [:add, :copy, :move] do
     %{
       operation
-      | payload: [from: graph_name(service, from, name), to: graph_name(service, to, name)]
+      | payload: [
+          from: operation_graph_name(service, from, name, opts),
+          to: operation_graph_name(service, to, name, opts)
+        ]
     }
   end
 
-  defp resolve_operation_graphs(operation, _repository), do: operation
-
-  def graphs(%_service_type{repository: %repository_type{} = repository}) do
-    repository_type.graphs(repository)
-  end
+  defp resolve_operation_graphs(operation, _repository, _opts), do: operation
 
   @doc """
   Checks if the service's repository exists in its store.
@@ -121,13 +143,13 @@ defmodule Gno.Service do
   @spec check_setup(t()) :: :ok | {:error, term()}
   def check_setup(%service_type{} = service) do
     """
-    #{RDF.prefix_map(gno: Gno) |> RDF.PrefixMap.to_sparql()}
+    #{RDF.prefix_map(dcatr: DCATR) |> RDF.PrefixMap.to_sparql()}
     ASK {
-      <#{service.repository.__id__}> gno:repositoryDataset ?dataset .
+      <#{service.repository.__id__}> dcatr:repositoryDataset ?dataset .
     }
     """
     |> Operation.ask!()
-    |> service_type.handle_sparql(service, graph: :repo)
+    |> service_type.handle_sparql(service, graph: :repo_manifest)
     |> case do
       {:ok, %SPARQL.Query.Result{results: true}} -> :ok
       {:ok, %SPARQL.Query.Result{results: false}} -> {:error, :repository_not_found}
@@ -141,14 +163,13 @@ defmodule Gno.Service do
   @spec validate_setup(t()) :: :ok | {:error, term()}
   def validate_setup(%service_type{} = service) do
     """
-    #{RDF.prefix_map(gno: Gno) |> RDF.PrefixMap.to_sparql()}
+    #{RDF.prefix_map(dcatr: DCATR) |> RDF.PrefixMap.to_sparql()}
     ASK {
-      <#{service.repository.__id__}> gno:repositoryDataset ?dataset .
-      ?dataset a gno:Dataset .
+      <#{service.repository.__id__}> dcatr:repositoryDataset ?dataset .
     }
     """
     |> Operation.ask!()
-    |> service_type.handle_sparql(service, graph: :repo)
+    |> service_type.handle_sparql(service, graph: :repo_manifest)
     |> case do
       {:ok, %SPARQL.Query.Result{results: true}} -> :ok
       {:ok, %SPARQL.Query.Result{results: false}} -> {:error, :invalid_repository_structure}
@@ -178,6 +199,6 @@ defmodule Gno.Service do
   @doc false
   @spec fetch_repository_graph(t(), keyword()) :: {:ok, RDF.Graph.t()} | {:error, term()}
   def fetch_repository_graph(%service_type{} = service, _opts \\ []) do
-    service_type.handle_sparql(Gno.QueryUtils.graph_query(), service, graph: :repo)
+    service_type.handle_sparql(Gno.QueryUtils.graph_query(), service, graph: :repo_manifest)
   end
 end

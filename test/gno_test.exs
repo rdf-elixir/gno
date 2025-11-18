@@ -28,7 +28,6 @@ defmodule GnoTest do
            ]
 
     assert Gno.update("""
-             WITH <#{Gno.graph_name(:dataset)}>
              DELETE { ?s <#{EX.p1()}> "Object 1" }
              INSERT { ?s <#{EX.p1()}> "Updated Object" }
              WHERE  { ?s <#{EX.p1()}> "Object 1" }
@@ -43,18 +42,17 @@ defmodule GnoTest do
     refute Gno.ask!(~s(ASK { ?s <#{EX.p1()}> "Object 2" }))
 
     assert Gno.insert("""
-           WITH <#{Gno.graph_name(:dataset)}>
            INSERT { ?s <#{EX.p3()}> ?o }
            WHERE { ?s <#{EX.p1()}> ?o }
            """) == :ok
 
     assert Gno.ask!("ASK { ?s <#{EX.p3()}> ?o }")
 
-    assert Gno.clear(:all) == :ok
+    assert Gno.clear(:service, silent: true) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }")
 
-    assert Gno.load(FOAF.__base_iri__() <> "index.rdf") == :ok
-    assert Gno.ask!("ASK { <#{RDF.iri(FOAF.Agent)}> ?p ?o }")
+    assert Gno.load("https://w3id.org/rtc/rtc.ttl") == :ok
+    assert Gno.ask!("ASK { <https://w3id.org/rtc#Compound> ?p ?o }")
 
     assert Gno.drop(:all) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }")
@@ -84,7 +82,6 @@ defmodule GnoTest do
     assert RDF.Graph.describes?(description_graph, EX.s1())
 
     assert Gno.delete("""
-             WITH <#{Gno.graph_name(:dataset)}>
              DELETE { <#{EX.s1()}> ?p ?o }
              WHERE { <#{EX.s1()}> ?p ?o }
            """) == :ok
@@ -95,7 +92,7 @@ defmodule GnoTest do
     assert Gno.drop(:all) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }")
 
-    assert Gno.create(Gno.graph_name(:dataset)) == :ok
+    assert Gno.create(Gno.graph_name(:repo_manifest)) == :ok
   end
 
   test "operation helpers with named graphs" do
@@ -131,12 +128,39 @@ defmodule GnoTest do
              graph2_opts
            )
 
+    assert Gno.update("""
+             WITH <#{graph1}>
+             DELETE { ?s <#{EX.p1()}> "Graph 1" }
+             INSERT { ?s <#{EX.p1()}> "Updated Graph 1" }
+             WHERE  { ?s <#{EX.p1()}> "Graph 1" }
+           """) == :ok
+
+    refute Gno.ask!(~s(ASK { ?s <#{EX.p1()}> "Graph 1" }), graph1_opts)
+    assert Gno.ask!(~s(ASK { ?s <#{EX.p1()}> "Updated Graph 1" }), graph1_opts)
+
+    assert Gno.insert("""
+           WITH <#{graph2}>
+           INSERT { ?s <#{EX.p2()}> ?o }
+           WHERE { ?s <#{EX.p1()}> ?o }
+           """) == :ok
+
+    assert Gno.ask!("ASK { ?s <#{EX.p2()}> ?o }", graph2_opts)
+
+    assert Gno.delete("""
+             WITH <#{graph1}>
+             DELETE { <#{EX.s1()}> ?p ?o }
+             WHERE { <#{EX.s1()}> ?p ?o }
+           """) == :ok
+
+    refute Gno.ask!("ASK { <#{EX.s1()}> ?p ?o }", graph1_opts)
+    assert Gno.ask!("ASK { <#{EX.s3()}> ?p ?o }", graph1_opts)
+
     assert Gno.clear(RDF.iri(graph1)) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }", graph1_opts)
     assert Gno.ask!("ASK { ?s ?p ?o }", graph2_opts)
 
-    assert Gno.load(FOAF.__base_iri__() <> "index.rdf", graph1_opts) == :ok
-    assert Gno.ask!("ASK { ?s ?p ?o }", graph1_opts)
+    assert Gno.load("https://w3id.org/rtc/rtc.ttl", graph1_opts) == :ok
+    assert Gno.ask!("ASK { <https://w3id.org/rtc#Compound> ?p ?o }", graph1_opts)
 
     assert Gno.drop(RDF.iri(graph2)) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }", graph2_opts)
@@ -193,7 +217,7 @@ defmodule GnoTest do
       assert {:ok, results} =
                Gno.select("SELECT ?o WHERE { <#{EX.s1()}> <#{EX.p1()}> ?o }",
                  service: service,
-                 graph: :dataset
+                 graph: :default
                )
 
       assert length(results.results) == 1
@@ -227,25 +251,34 @@ defmodule GnoTest do
       service = Gno.service!()
 
       source_data = RDF.graph([{EX.s1(), EX.p1(), "Source Data"}])
-      assert Gno.insert_data(source_data, graph: :dataset) == :ok
+      assert Gno.insert_data(source_data, graph: :primary) == :ok
 
-      assert Gno.add(:dataset, :repo, service: service) == :ok
+      assert Gno.add(:primary, :repo_manifest, service: service) == :ok
 
-      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", service: service, graph: :repo) ==
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
+               service: service,
+               graph: :repo_manifest
+             ) ==
                {:ok, true}
 
       assert Gno.clear(:all) == :ok
 
-      assert Gno.insert_data(source_data, graph: :dataset) == :ok
+      assert Gno.insert_data(source_data, graph: :primary) == :ok
       target_data = RDF.graph([{EX.s2(), EX.p2(), "Target Data"}])
-      assert Gno.insert_data(target_data, graph: :repo) == :ok
+      assert Gno.insert_data(target_data, graph: :repo_manifest) == :ok
 
-      assert Gno.copy(:dataset, :repo, service: service) == :ok
+      assert Gno.copy(:primary, :repo_manifest, service: service) == :ok
 
-      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }", service: service, graph: :repo) ==
+      assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
+               service: service,
+               graph: :repo_manifest
+             ) ==
                {:ok, true}
 
-      refute Gno.ask!("ASK { <#{EX.s2()}> <#{EX.p2()}> ?o }", service: service, graph: :repo)
+      refute Gno.ask!("ASK { <#{EX.s2()}> <#{EX.p2()}> ?o }",
+               service: service,
+               graph: :repo_manifest
+             )
     end
 
     test "inter-graph operations with alternative :service option using different repository" do
@@ -267,25 +300,25 @@ defmodule GnoTest do
 
       # Insert data into the alternative dataset graph directly
       source_data = RDF.graph([{EX.s1(), EX.p1(), "Alt Service Data"}])
-      assert Gno.insert_data(source_data, service: alt_service, graph: :dataset) == :ok
+      assert Gno.insert_data(source_data, service: alt_service, graph: :primary) == :ok
 
       # Verify data is in the alternative dataset
       assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
                service: alt_service,
-               graph: :dataset
+               graph: :primary
              ) == {:ok, true}
 
       # Now use add operation with the alternative service
-      # This should resolve :dataset to alt-dataset and :repo to alt-repo
-      assert Gno.add(:dataset, :repo, service: alt_service) == :ok
+      # This should resolve :primary to alt-dataset and :repo_manifest to alt-repo
+      assert Gno.add(:primary, :repo_manifest, service: alt_service) == :ok
 
       # Verify the data was copied to the alternative repo graph
       assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
                service: alt_service,
-               graph: :repo
+               graph: :repo_manifest
              ) == {:ok, true}
 
-      expected_repo_graph = Gno.Repository.graph_name(alt_repo, :repo)
+      expected_repo_graph = Gno.Service.graph_name(alt_service, :repo_manifest)
 
       assert Gno.ask("ASK { <#{EX.s1()}> <#{EX.p1()}> ?o }",
                store: alt_service.store,
@@ -314,24 +347,26 @@ defmodule GnoTest do
 
       assert Gno.create(:service) == :ok
 
-      assert Gno.insert_data(test_data, graph: :dataset) == :ok
-      assert Gno.insert_data(test_data, graph: :repo) == :ok
+      assert Gno.insert_data(test_data, graph: :primary) == :ok
+      assert Gno.insert_data(test_data, graph: :repo_manifest) == :ok
+      assert Gno.insert_data(test_data, graph: EX.Graph3) == :ok
 
-      assert Gno.ask("ASK { ?s ?p ?o }", graph: :dataset) == {:ok, true}
-      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo) == {:ok, true}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :primary) == {:ok, true}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo_manifest) == {:ok, true}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: EX.Graph3) == {:ok, true}
 
       assert Gno.clear(:service) == :ok
 
-      assert Gno.ask("ASK { ?s ?p ?o }", graph: :dataset) == {:ok, false}
-      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo) == {:ok, false}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :primary) == {:ok, false}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo_manifest) == {:ok, false}
 
-      assert Gno.insert_data(test_data, graph: :dataset) == :ok
-      assert Gno.insert_data(test_data, graph: :repo) == :ok
+      assert Gno.insert_data(test_data, graph: :primary) == :ok
+      assert Gno.insert_data(test_data, graph: :repo_manifest) == :ok
 
       assert Gno.drop(:service) == :ok
 
-      assert Gno.ask("ASK { ?s ?p ?o }", graph: :dataset) == {:ok, false}
-      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo) == {:ok, false}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :primary) == {:ok, false}
+      assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo_manifest) == {:ok, false}
     end
   end
 
@@ -372,11 +407,11 @@ defmodule GnoTest do
 
       assert Gno.ask("ASK { <#{RDF.iri(EX.S1)}> <#{EX.p1()}> ?o }",
                service: alt_service,
-               graph: :dataset
+               graph: :default
              ) ==
                {:ok, true}
 
-      refute Gno.ask!("ASK { <#{RDF.iri(EX.S1)}> <#{EX.p1()}> ?o }", graph: :dataset)
+      refute Gno.ask!("ASK { <#{RDF.iri(EX.S1)}> <#{EX.p1()}> ?o }", graph: :primary)
     end
 
     test "effective_changeset/2 with alternative :service option" do
@@ -397,16 +432,16 @@ defmodule GnoTest do
   end
 
   describe "graph/2" do
-    test "fetches dataset graph with :dataset atom" do
+    test "fetches primary graph with :primary atom" do
       test_data = RDF.graph([{EX.s1(), EX.p1(), "Dataset Content"}])
-      assert Gno.insert_data(test_data, graph: :dataset) == :ok
+      assert Gno.insert_data(test_data, graph: :primary) == :ok
 
-      assert Gno.graph(:dataset) |> without_prefixes() == {:ok, test_data}
+      assert Gno.graph(:primary) |> without_prefixes() == {:ok, test_data}
     end
 
-    test "fetches repository graph with :repo atom" do
+    test "fetches repository graph with :repo_manifest atom" do
       assert {:ok, _} = Gno.setup()
-      assert {:ok, graph} = Gno.graph(:repo)
+      assert {:ok, graph} = Gno.graph(:repo_manifest)
       assert RDF.Graph.describes?(graph, Gno.repository!().__id__)
     end
 
@@ -424,9 +459,9 @@ defmodule GnoTest do
       service = Gno.service!()
       test_data = RDF.graph([{EX.s1(), EX.p1(), "Service Graph"}])
 
-      assert Gno.insert_data(test_data, service: service, graph: :dataset) == :ok
+      assert Gno.insert_data(test_data, service: service, graph: :primary) == :ok
 
-      assert Gno.graph(:dataset, service: service) |> without_prefixes() == {:ok, test_data}
+      assert Gno.graph(:primary, service: service) |> without_prefixes() == {:ok, test_data}
     end
 
     test "works with :store option and concrete graph IRI" do
@@ -441,7 +476,7 @@ defmodule GnoTest do
     end
 
     test "returns empty graph when no data" do
-      assert {:ok, graph} = Gno.graph(:dataset)
+      assert {:ok, graph} = Gno.graph(:primary)
       assert RDF.Graph.triple_count(graph) == 0
     end
   end

@@ -1,0 +1,19 @@
+@prefix dcatr: <https://w3id.org/dcatr#> .
+@prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+
+_:service-manifest {
+    <http://example.com/Service> a gno:Service
+        ; dcatr:serviceRepository <http://example.com/Repository>
+        ; gno:serviceStore <http://example.com/Store>
+        .
+
+    <http://example.com/Store> a gnoa:Oxigraph .
+}
+
+_:repository-manifest {
+    <http://example.com/Repository> a dcatr:Repository
+        ; dcatr:repositoryDataset <http://example.com/Dataset>
+        ; dcatr:repositoryManifestGraph <http://example.com/RepositoryManifestGraph>
+        .
+}

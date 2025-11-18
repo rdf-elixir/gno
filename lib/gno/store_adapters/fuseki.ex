@@ -22,7 +22,7 @@ defmodule Gno.Store.Adapters.Fuseki do
 
   require Logger
 
-  @default_db_type (case Gno.Manifest.env() do
+  @default_db_type (case DCATR.Manifest.env() do
                       :test -> "mem"
                       _ -> "tdb"
                     end)

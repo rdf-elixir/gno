@@ -1,7 +1,8 @@
 import Config
 
-config :gno,
+config :dcatr,
   env: Mix.env(),
+  load_path: ["config/gno"],
   manifest_type: Gno.Manifest
 
 config :sparql_client,

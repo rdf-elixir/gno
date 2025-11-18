@@ -1,10 +1,14 @@
-@prefix gno: <https://w3id.org/gno#> .
+@prefix dcatr: <https://w3id.org/dcatr#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
-<http://example.com/Repository> a gno:Repository ;
-    gno:repositoryDataset <http://example.com/Dataset> .
+<http://example.com/Repository> a dcatr:Repository
+    ; dcatr:repositoryDataset <http://example.com/Dataset>
+    ; dcatr:repositoryManifestGraph <http://example.com/RepositoryManifestGraph>
+    ; dcterms:creator <http://example.com/Agent>
+.
 
-<http://example.com/Dataset> a gno:Dataset ;
-    dcterms:title "test dataset" .
+<http://example.com/Dataset> a dcatr:Dataset
+    ; dcterms:title "test dataset"
+.
 

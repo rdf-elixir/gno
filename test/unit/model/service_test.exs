@@ -18,7 +18,7 @@ defmodule Gno.ServiceTest do
   end
 
   describe "handle_sparql/4" do
-    test "default graph" do
+    test "default graph (via: nil)" do
       assert EX.S
              |> EX.p(EX.O)
              |> RDF.graph()
@@ -41,12 +41,12 @@ defmodule Gno.ServiceTest do
                |> Service.handle_sparql(Manifest.service!(), graph: nil)
     end
 
-    test "named graph" do
+    test "default graph (via: :default)" do
       assert EX.S
              |> EX.p(EX.O)
              |> RDF.graph()
              |> Operation.insert_data!()
-             |> Service.handle_sparql(Manifest.service!()) ==
+             |> Service.handle_sparql(Manifest.service!(), graph: :default) ==
                :ok
 
       assert {:ok,
@@ -61,7 +61,44 @@ defmodule Gno.ServiceTest do
               }} =
                "SELECT * WHERE { ?s ?p ?o . }"
                |> Operation.select!()
-               |> Service.handle_sparql(Manifest.service!(), graph: :dataset)
+               |> Service.handle_sparql(Manifest.service!(), graph: :default)
+
+      assert {:ok,
+              %SPARQL.Query.Result{
+                results: [
+                  %{
+                    "s" => ~I<http://example.com/S>,
+                    "p" => ~I<http://example.com/p>,
+                    "o" => ~I<http://example.com/O>
+                  }
+                ]
+              }} =
+               "SELECT * WHERE { ?s ?p ?o . }"
+               |> Operation.select!()
+               |> Service.handle_sparql(Manifest.service!(), graph: nil)
+    end
+
+    test "named graph" do
+      assert EX.S
+             |> EX.p(EX.O)
+             |> RDF.graph()
+             |> Operation.insert_data!()
+             |> Service.handle_sparql(Manifest.service!(), graph: EX.Graph2) ==
+               :ok
+
+      assert {:ok,
+              %SPARQL.Query.Result{
+                results: [
+                  %{
+                    "s" => ~I<http://example.com/S>,
+                    "p" => ~I<http://example.com/p>,
+                    "o" => ~I<http://example.com/O>
+                  }
+                ]
+              }} =
+               "SELECT * WHERE { ?s ?p ?o . }"
+               |> Operation.select!()
+               |> Service.handle_sparql(Manifest.service!(), graph: EX.Graph2)
 
       graph =
         EX.S2
@@ -70,13 +107,13 @@ defmodule Gno.ServiceTest do
 
       assert graph
              |> Operation.insert_data!()
-             |> Service.handle_sparql(Manifest.service!(), graph: :repo) ==
+             |> Service.handle_sparql(Manifest.service!(), graph: :repo_manifest) ==
                :ok
 
       assert {:ok, result} =
                "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o . }"
                |> Operation.construct!()
-               |> Service.handle_sparql(Manifest.service!(), graph: :repo)
+               |> Service.handle_sparql(Manifest.service!(), graph: :repo_manifest)
 
       # some triple stores (like Fuseki) add all known prefixes
       assert Graph.clear_prefixes(result) == graph
@@ -203,5 +240,36 @@ defmodule Gno.ServiceTest do
       assert RDF.Graph.describes?(graph, service.repository.__id__)
       assert RDF.Graph.describes?(graph, service.repository.dataset.__id__)
     end
+  end
+
+  describe "graph_name/3" do
+    test "resolves selectors" do
+      assert Gno.Service.graph_name(Gno.service!(), :primary) == RDF.iri(EX.Graph)
+      assert Gno.Service.graph_name(Gno.service!(), :default) == :default
+      assert Gno.Service.graph_name(Gno.service!(), :all) == :all
+
+      assert Gno.Service.graph_name(Gno.service!(), :repo_manifest) ==
+               RDF.iri(EX.RepositoryManifestGraph)
+    end
+
+    test "resolves graph IRI directly" do
+      graph_iri = RDF.iri(EX.Graph3)
+      assert Gno.Service.graph_name(Gno.service!(), graph_iri) == graph_iri
+    end
+
+    test "resolves graph by string IRI" do
+      graph_iri_string = "http://example.com/Graph3"
+      assert Gno.Service.graph_name(Gno.service!(), graph_iri_string) == RDF.iri(graph_iri_string)
+    end
+  end
+
+  test "default_graph/1" do
+    assert %DCATR.DataGraph{} = default_graph = Gno.Service.default_graph(Gno.service!())
+    assert default_graph.__id__ == RDF.iri(EX.Graph2)
+  end
+
+  test "primary_graph/1" do
+    assert %DCATR.DataGraph{} = primary_graph = Gno.Service.primary_graph(Gno.service!())
+    assert primary_graph.__id__ == RDF.iri(EX.Graph)
   end
 end

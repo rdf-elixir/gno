@@ -85,6 +85,7 @@ defmodule Gno.Store.GenSPARQL do
   end
 
   defp add_graph_opt(opts, _, nil), do: opts
+  defp add_graph_opt(opts, _, :default), do: opts
 
   defp add_graph_opt(opts, type, graph) do
     {named_graph, opts} = Keyword.pop(opts, :named_graph, false)

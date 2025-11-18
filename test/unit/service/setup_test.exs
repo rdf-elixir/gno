@@ -57,7 +57,7 @@ defmodule Gno.Service.SetupTest do
               {service.repository.__id__, ~I<http://example.com/extensionData>, extension_data}
             ])
 
-          case Gno.insert_data(extension_graph, service: service, graph: :repo) do
+          case Gno.insert_data(extension_graph, service: service, graph: :repo_manifest) do
             :ok -> {:ok, service}
             {:error, reason} -> {:error, reason}
           end
@@ -77,7 +77,7 @@ defmodule Gno.Service.SetupTest do
                }
                """,
                service: service,
-               graph: :repo
+               graph: :repo_manifest
              )
 
       assert :ok = Setup.validate(service, extension: CompleteTestExtension)

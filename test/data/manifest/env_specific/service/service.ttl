@@ -1,9 +1,0 @@
-@prefix gno: <https://w3id.org/gno#> .
-@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-
-<http://example.com/Service> a gno:Service
-    ; dcterms:title "Example service"
-    ; gno:serviceStore <http://example.com/Store>
-.
-

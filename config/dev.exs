@@ -1,3 +1,3 @@
 import Config
 
-config :gno, manifest_base: "http://example.com/"
+config :dcatr, manifest_base: "http://example.com/"

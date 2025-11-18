@@ -4,50 +4,18 @@ defmodule Gno.ManifestTest do
   doctest Gno.Manifest
 
   alias Gno.Manifest
-  alias Gno.{Service, Store, Repository, Dataset}
+  alias Gno.{Service, Store}
   alias Gno.Store.Adapters.{Oxigraph, Fuseki, GraphDB}
-
-  import RDF.Sigils
+  alias DCATR.{Repository, Dataset}
 
   @configured_store_adapter configured_store_adapter()
 
-  describe "env/1" do
-    test "returns configured environment" do
-      assert Manifest.env(env: :prod) == :prod
-      assert Manifest.env(env: :dev) == :dev
-      assert Manifest.env(env: :test) == :test
-    end
-
-    test "accepts string environments" do
-      assert Manifest.env(env: "PROD") == :prod
-      assert Manifest.env(env: "prod") == :prod
-    end
-
-    test "reads from GNO_ENV" do
-      System.put_env("GNO_ENV", "prod")
-      assert Manifest.env() == :prod
-      System.delete_env("GNO_ENV")
-    end
-
-    test "falls back to MIX_ENV" do
-      System.put_env("MIX_ENV", "dev")
-      assert Manifest.env() == :dev
-      System.delete_env("MIX_ENV")
-    end
-
-    test "raises on invalid environment" do
-      assert_raise RuntimeError, ~r/Invalid environment/, fn ->
-        Manifest.env(env: :invalid)
-      end
-    end
-  end
-
-  describe "with test manifest" do
+  describe "store loading with test manifest" do
     setup do
       [load_path: TestData.manifest("flat_dir")]
     end
 
-    test "service/0", %{load_path: load_path} do
+    test "service/0 returns service with store field", %{load_path: load_path} do
       assert {:ok,
               %Service{
                 repository: %Repository{
@@ -57,27 +25,13 @@ defmodule Gno.ManifestTest do
               }} = Manifest.service(load_path: load_path)
     end
 
-    test "repository/0", %{load_path: load_path} do
-      assert {:ok, %Repository{dataset: %Dataset{}}} =
-               Manifest.repository(load_path: load_path)
-    end
-
-    test "dataset/0", %{load_path: load_path} do
-      assert {:ok,
-              %Dataset{
-                __additional_statements__: %{
-                  ~I<http://purl.org/dc/terms/title> => %{~L"test dataset" => nil}
-                }
-              }} = Manifest.dataset(load_path: load_path)
-    end
-
-    test "store/0", %{load_path: load_path} do
+    test "store/0 extracts store from service", %{load_path: load_path} do
       assert {:ok, %Fuseki{}} = Manifest.store(load_path: load_path)
     end
   end
 
-  describe "with default manifest" do
-    test "service/0" do
+  describe "store loading with default manifest" do
+    test "service/0 returns service with configured store adapter" do
       assert {:ok,
               %Service{
                 repository: %Repository{
@@ -85,19 +39,6 @@ defmodule Gno.ManifestTest do
                 },
                 store: %@configured_store_adapter{}
               }} = Manifest.service()
-    end
-
-    test "repository/0" do
-      assert {:ok, %Repository{dataset: %Dataset{}}} = Manifest.repository()
-    end
-
-    test "dataset/0" do
-      assert {:ok,
-              %Dataset{
-                __additional_statements__: %{
-                  ~I<http://purl.org/dc/terms/title> => %{~L"test dataset" => nil}
-                }
-              }} = Manifest.dataset()
     end
 
     case @configured_store_adapter do
@@ -124,6 +65,80 @@ defmodule Gno.ManifestTest do
         test "store/0 with GraphDB adapter" do
           assert {:ok, %GraphDB{port: 7200}} = Manifest.store()
         end
+    end
+  end
+
+  describe "commit operation configuration" do
+    test "custom commit operation with middleware chain" do
+      load_path = [
+        TestData.manifest("single_file.trig"),
+        TestData.manifest("commit_config/custom_commit_operation_with_middleware.trig")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                service: %Service{
+                  commit_operation: %TestCommitOperation{
+                    middlewares: [
+                      %Gno.CommitLogger{log_level: "info", log_states: ["all"]},
+                      %TestStateFlowMiddleware{label: "first"},
+                      %TestStateFlowMiddleware{label: "second"}
+                    ]
+                  }
+                }
+              }} = DCATR.Manifest.Loader.load(Gno.Manifest, load_path: load_path)
+    end
+
+    test "custom commit operation as class" do
+      load_path = [
+        TestData.manifest("single_file.trig"),
+        TestData.manifest("commit_config/custom_commit_operation_as_class.trig")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                service: %Service{
+                  commit_operation: %TestCommitOperation{}
+                }
+              }} = DCATR.Manifest.Loader.load(Gno.Manifest, load_path: load_path)
+    end
+
+    test "commit middleware as class" do
+      load_path = [
+        TestData.manifest("single_file.trig"),
+        TestData.manifest("commit_config/commit_operation_with_middleware_as_class.trig")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                service: %Service{
+                  commit_operation: %Gno.CommitOperation{
+                    middlewares: [
+                      %TestStateFlowMiddleware{label: "default"},
+                      %Gno.CommitLogger{log_level: "info"}
+                    ]
+                  }
+                }
+              }} = DCATR.Manifest.Loader.load(Gno.Manifest, load_path: load_path)
+    end
+
+    test "custom commit operation with middleware as class" do
+      load_path = [
+        TestData.manifest("single_file.trig"),
+        TestData.manifest("commit_config/custom_commit_operation_with_middleware_as_class.trig")
+      ]
+
+      assert {:ok,
+              %Gno.Manifest{
+                service: %Service{
+                  commit_operation: %TestCommitOperation{
+                    middlewares: [
+                      %TestStateFlowMiddleware{label: "default"},
+                      %Gno.CommitLogger{log_level: "info"}
+                    ]
+                  }
+                }
+              }} = DCATR.Manifest.Loader.load(Gno.Manifest, load_path: load_path)
     end
   end
 end

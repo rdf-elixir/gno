@@ -29,13 +29,13 @@ defmodule Gno do
 
   - `:store` - Use a specific store directly, bypassing service-level abstractions. When using
     this option, the `:graph` option must specify concrete graph IRIs rather than symbolic
-    names like `:dataset` or `:repo`. 
+    names like `:primary` or `:repo_manifest`.
     This option is not supported on `commit/2` and `effective_changeset/2`.
 
-  - `:graph` - The target graph for the operation, which is processed through `Gno.Repository.graph_name/2`
-    to support special values like `:dataset` and `:repo`. Defaults to `:dataset` for most operations,
-    except for `create/2`, `drop/2`, and `clear/2` which require an explicit graph argument and for
-    the SPARQL update operations (see above).
+  - `:graph` - The target graph for the operation, which is processed through `Gno.Service.graph_name/2`
+    to support special values like `:default` and `:repo_manifest`.
+    Defaults to `Gno.default_target_graph/0` for most operations, except for `create/2`, `drop/2`, and
+    `clear/2` which require an explicit graph argument, and for the SPARQL update operations (see above).
 
   - Additional options are passed to the underlying `SPARQL.Client` function. See the `SPARQL.Client`
     documentation for available options.
@@ -50,7 +50,7 @@ defmodule Gno do
   import RDF.Namespace
   act_as_namespace Gno.NS.Gno
 
-  alias Gno.{Service, Repository, Store}
+  alias Gno.{Service, Store}
   alias Gno.Store.SPARQL.Operation
   import Gno.Utils, only: [bang!: 2]
 
@@ -58,8 +58,8 @@ defmodule Gno do
     Application.get_env(:gno, :ansi_enabled, true)
   end
 
-  def manifest_type do
-    Application.get_env(:gno, :manifest_type, Gno.Manifest)
+  def default_target_graph do
+    Application.get_env(:gno, :default_target_graph, :default)
   end
 
   defdelegate manifest(opts \\ []), to: Gno.Manifest
@@ -80,8 +80,9 @@ defmodule Gno do
   ## Arguments
 
     - `graph_spec` - Can be:
-      - Any atom value supported by `Repository.graph_name/2` (e.g., `:dataset`, `:repo`)
+      - Any atom value supported by `Gno.Service.graph_name/2` (e.g., `:default`, `:primary`, `:repo_manifest`)
       - A single graph IRI - Returns that specific graph
+      - A list of graph IRIs - Returns RDF.Dataset with those graphs (future)
 
     Note: The available atom values depend on the Repository implementation and can be
     extended by subclasses overriding `graph_name/2`.
@@ -89,10 +90,10 @@ defmodule Gno do
   ## Examples
 
       # Get repository metadata graph
-      {:ok, graph} = Gno.graph(:repo)
+      {:ok, graph} = Gno.graph(:repo_manifest)
       
-      # Get dataset content
-      {:ok, graph} = Gno.graph(:dataset)
+      # Get default graph content
+      {:ok, graph} = Gno.graph(:default)
       
       # Get specific graph by IRI
       {:ok, graph} = Gno.graph("http://example.com/my-graph")
@@ -110,8 +111,8 @@ defmodule Gno do
   """
   def graph!(graph_spec, opts \\ []), do: bang!(&graph/2, [graph_spec, opts])
 
-  def graph_name(graph_id \\ :dataset, opts \\ []) do
-    Repository.graph_name(repository!(opts), graph_id)
+  def graph_name(graph_id \\ default_target_graph(), opts \\ []) do
+    Service.graph_name(service!(opts), graph_id)
   end
 
   @update_warning """
@@ -294,7 +295,7 @@ defmodule Gno do
       WHERE
       { GRAPH <http://example/bookStore> { ?book dc:title "Old Title" } }
       \"\"\"
-      |> Gno.delete(graph: :dataset)
+      |> Gno.delete()
   """
   def delete(update, opts \\ []) do
     with {:ok, operation} <- Operation.delete(update, opts) do
@@ -324,7 +325,7 @@ defmodule Gno do
       WHERE
       { GRAPH <http://example/bookStore> { ?book dc:title "Old Title" } }
       \"\"\"
-      |> Gno.update(graph: :dataset)
+      |> Gno.update()
   """
   def update(update, opts \\ []) do
     with {:ok, operation} <- Operation.update(update, opts) do
@@ -550,8 +551,8 @@ defmodule Gno do
       # Add statements from one graph to another
       Gno.add("http://example.com/graph1", "http://example.com/graph2")
 
-      # Add statements from the default graph to the dataset graph
-      Gno.add(:default, :dataset)
+      # Add statements from the default graph to the datasets primary graph
+      Gno.add(:default, :primary)
 
       Gno.add(
         "http://example.com/graph1",

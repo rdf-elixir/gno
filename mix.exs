@@ -31,6 +31,7 @@ defmodule Gno.MixProject do
       rdf_ex_dep(:sparql, "~> 0.3"),
       rdf_ex_dep(:dcat, "~> 0.1"),
       rdf_ex_dep(:prov, "~> 0.1"),
+      rdf_ex_dep(:dcatr, "~> 0.1"),
       # we are using YuriTemplate, because we have it already as a dependency of Grax
       {:yuri_template, "~> 1.1"},
       {:uniq, "~> 0.6"},

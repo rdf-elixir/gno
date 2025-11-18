@@ -90,8 +90,100 @@ defmodule Gno.Commit.ProcessorTest do
              Graph.new(description)
 
     assert Gno.QueryUtils.graph_query()
-           |> Gno.execute!(graph: :repo)
+           |> Gno.execute!(graph: :repo_manifest)
            |> Graph.include?(expected_metadata)
+  end
+
+  describe "execute/3 with :default graph selector" do
+    test "processes commit with explicit :default selector" do
+      description = EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2)
+      expected_changeset = Gno.EffectiveChangeset.new!(add: description)
+
+      assert {:ok, %Gno.Commit{changeset: ^expected_changeset}, %Processor{state: :completed}} =
+               Processor.execute(commit_processor(), [add: description], graph: :default)
+
+      assert Gno.QueryUtils.graph_query()
+             |> Gno.execute!(graph: :default)
+             |> Graph.clear_prefixes() ==
+               graph(description)
+    end
+
+    test "processes commit with Graph ID that maps to :default" do
+      description = EX.S1 |> EX.p1(EX.O1) |> EX.p2(EX.O2)
+      expected_changeset = Gno.EffectiveChangeset.new!(add: description)
+
+      assert {:ok, %Gno.Commit{changeset: ^expected_changeset}, %Processor{state: :completed}} =
+               Processor.execute(commit_processor(), [add: description],
+                 graph: Gno.Service.default_graph(Gno.service!()).__id__
+               )
+
+      assert Gno.QueryUtils.graph_query()
+             |> Gno.execute!(graph: :default)
+             |> Graph.clear_prefixes() ==
+               graph(description)
+    end
+
+    test "processes additional_changes with graph name resolution including :default" do
+      service = Manifest.service!()
+      processor = Processor.new!(service)
+
+      main_data = EX.S1 |> EX.p1(EX.O1)
+      default_data = EX.S2 |> EX.p2(EX.O2)
+      primary_data = EX.S3 |> EX.p3(EX.O3)
+      manifest_data = EX.S4 |> EX.p4(EX.O4)
+
+      {:ok, processor} =
+        with {:ok, processor} <-
+               Processor.add_additional_changes(processor, :default, add: default_data),
+             {:ok, processor} <-
+               Processor.add_additional_changes(processor, :primary, add: primary_data),
+             {:ok, processor} <-
+               Processor.add_additional_changes(processor, :repo_manifest, add: manifest_data) do
+          {:ok, processor}
+        end
+
+      assert {:ok, _commit, %Processor{state: :completed}} =
+               Processor.execute(processor, add: main_data)
+
+      expected_default = Graph.new([main_data, default_data])
+
+      assert Gno.QueryUtils.graph_query()
+             |> Gno.execute!(graph: :default)
+             |> Graph.clear_prefixes() ==
+               expected_default
+
+      assert Gno.QueryUtils.graph_query()
+             |> Gno.execute!(graph: :primary)
+             |> Graph.clear_prefixes() ==
+               graph(primary_data)
+
+      assert Gno.QueryUtils.graph_query()
+             |> Gno.execute!(graph: :repo_manifest)
+             |> Graph.clear_prefixes() ==
+               graph(manifest_data)
+    end
+
+    test "processes additional_changes with default graph ID that resolves to :default" do
+      service = Manifest.service!()
+      processor = Processor.new!(service)
+      default_graph_id = Gno.Service.default_graph(service).__id__
+
+      main_data = EX.S1 |> EX.p1(EX.O1)
+      graph_id_data = EX.S2 |> EX.p2(EX.O2)
+
+      {:ok, processor} =
+        Processor.add_additional_changes(processor, default_graph_id, add: graph_id_data)
+
+      assert {:ok, _commit, %Processor{state: :completed}} =
+               Processor.execute(processor, add: main_data)
+
+      expected_default = Graph.new([main_data, graph_id_data])
+
+      assert Gno.QueryUtils.graph_query()
+             |> Gno.execute!(graph: :default)
+             |> Graph.clear_prefixes() ==
+               expected_default
+    end
   end
 
   describe "execute/3 handling of NoEffectiveChanges" do
@@ -232,7 +324,7 @@ defmodule Gno.Commit.ProcessorTest do
 
       assert result.state == {:rolled_back, :initialized}
       assert result.errors == ["Failed on state preparing"]
-      assert Gno.execute!(Gno.QueryUtils.graph_query()) == empty_graph()
+      assert Gno.execute!(Gno.QueryUtils.graph_query()) |> Graph.clear_prefixes() == empty_graph()
     end
 
     test "handles exception in middleware" do
@@ -259,7 +351,7 @@ defmodule Gno.Commit.ProcessorTest do
 
       assert result.state == {:rolled_back, :initialized}
       assert result.errors == [%RuntimeError{message: "Failed on state preparing"}]
-      assert Gno.execute!(Gno.QueryUtils.graph_query()) == empty_graph()
+      assert Gno.execute!(Gno.QueryUtils.graph_query()) |> Graph.clear_prefixes() == empty_graph()
     end
 
     test "handles error in post-commit phase (no rollback)" do
@@ -322,7 +414,7 @@ defmodule Gno.Commit.ProcessorTest do
 
       assert result.state == {:rolled_back, :changes_applied}
       assert result.errors == ["Failed on state ending_transaction"]
-      assert Gno.execute!(Gno.QueryUtils.graph_query()) == empty_graph()
+      assert Gno.execute!(Gno.QueryUtils.graph_query()) |> Graph.clear_prefixes() == empty_graph()
     end
 
     test "handles rollback with middlewares in different states" do

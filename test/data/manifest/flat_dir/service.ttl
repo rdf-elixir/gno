@@ -1,12 +1,14 @@
+@prefix dcatr: <https://w3id.org/dcatr#> .
 @prefix gno: <https://w3id.org/gno#> .
 @prefix gnoa: <https://w3id.org/gno/store/adapter/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
-<http://example.com/Service> a gno:Service ;
-                             gno:serviceStore <http://example.com/Store> ;
-                             gno:serviceRepository <http://example.com/Repository> .
+<http://example.com/Service> a gno:Service
+    ; gno:serviceStore <http://example.com/Store>
+    ; dcatr:serviceRepository <http://example.com/Repository>
+.
 
 <http://example.com/Store> a gnoa:Fuseki
-        ; gno:storeEndpointDataset "some-dataset"
+    ; gno:storeEndpointDataset "some-dataset"
 .

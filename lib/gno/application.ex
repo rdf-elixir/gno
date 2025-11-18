@@ -5,9 +5,7 @@ defmodule Gno.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      Gno.Manifest.Cache
-    ]
+    children = []
 
     opts = [strategy: :one_for_one, name: Gno.Supervisor]
     Supervisor.start_link(children, opts)

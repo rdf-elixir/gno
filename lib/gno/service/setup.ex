@@ -108,7 +108,7 @@ defmodule Gno.Service.Setup do
     service.repository
     |> Grax.to_rdf!()
     |> RDF.Graph.add(Keyword.get(opts, :repository_data, []))
-    |> Gno.insert_data(service: service, graph: :repo)
+    |> Gno.insert_data(service: service, graph: :repo_manifest)
     |> case do
       :ok -> {:ok, service}
       {:error, reason} -> {:error, {:repository_init, reason}}

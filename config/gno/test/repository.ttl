@@ -1,16 +1,34 @@
 @base <http://example.com/> .
 @prefix gno: <https://w3id.org/gno#> .
+@prefix dcatr: <https://w3id.org/dcatr#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<Repository> a gno:Repository
-    ; gno:repositoryDataset <Dataset>
+<Repository> a dcatr:Repository
+    ; dcatr:repositoryDataset <Dataset>
+    ; dcatr:repositoryPrimaryGraph <Graph>
+    ; dcatr:repositoryManifestGraph <RepositoryManifestGraph>
     ; dcterms:title "test repository"
     ; dcterms:creator <User>
     ; dcterms:publisher <User>
 .
 
-<Dataset> a gno:Dataset
+<Dataset> a dcatr:Dataset
     ; dcterms:title "test dataset"
     ; dcterms:creator <User>
     ; dcterms:publisher <User>
+    ; dcatr:dataGraph <Graph>, <Graph2>, <Graph3>
+.
+
+<Graph> a dcatr:DataGraph
+    ; dcterms:title "test graph"
+    ; dcterms:creator <User>
+    ; dcterms:publisher <User>
+.
+
+<Graph2> a dcatr:DataGraph
+    ; dcterms:title "test graph 2"
+.
+
+<Graph3> a dcatr:DataGraph
+    ; dcterms:title "test graph 3"
 .

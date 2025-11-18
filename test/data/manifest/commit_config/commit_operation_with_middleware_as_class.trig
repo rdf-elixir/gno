@@ -1,6 +1,8 @@
 @prefix gno: <https://w3id.org/gno#> .
 @prefix ex: <http://example.com/> .
 
-ex:Service a gno:Service
+_:service-manifest {
+    ex:Service a gno:Service
         ; gno:serviceCommitOperation [ gno:commitMiddleware ( ex:TestStateFlowMiddleware gno:CommitLogger ) ]
-.
+        .
+}

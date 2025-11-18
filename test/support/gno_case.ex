@@ -28,7 +28,7 @@ defmodule GnoCase do
   alias RDF.{Graph, IRI}
 
   def clean_manifest_cache(_) do
-    Gno.Manifest.Cache.clear()
+    DCATR.Manifest.Cache.clear()
   end
 
   def configured_store_adapter do

@@ -3,7 +3,7 @@ defmodule Gno.Manifest.Generator do
   Generator for the manifest files of a Gno repository.
   """
 
-  alias Gno.Manifest.{LoadPath, GeneratorError}
+  alias DCATR.Manifest.GeneratorError
   alias Gno.Store
 
   @doc """
@@ -26,32 +26,6 @@ defmodule Gno.Manifest.Generator do
   end
 
   @doc """
-  Returns the manifest directory path within the project directory.
-
-  The manifest directory is determined from the configured load path.
-  The last path in the load path with the highest precedence is used,
-  since it is the most specific path.
-
-  Returns an error if the last path in the load path is absolute, since
-  manifest directories must be relative to the project directory.
-  """
-  def manifest_dir(opts \\ []) do
-    manifest_dir = LoadPath.load_path(opts) |> List.last()
-
-    if Path.type(manifest_dir) == :absolute do
-      {:error,
-       GeneratorError.exception("""
-       Cannot use absolute path as manifest directory: #{manifest_dir}
-
-       The manifest directory must be relative to the project directory to ensure proper
-       organization of project files. Please use a relative path instead.
-       """)}
-    else
-      {:ok, manifest_dir}
-    end
-  end
-
-  @doc """
   Generates the manifest files for a Gno repository.
 
   The `project_dir` is the root directory of the project where additional directories
@@ -67,46 +41,9 @@ defmodule Gno.Manifest.Generator do
   """
   @spec generate(Gno.Manifest.Type.t(), Path.t(), keyword()) :: :ok | {:error, any()}
   def generate(manifest_type, project_dir, opts \\ []) do
-    with {:ok, manifest_dir} <- manifest_dir(opts),
-         {:ok, adapter} <- Keyword.get(opts, :adapter) |> to_adapter(),
-         destination = Path.join(project_dir, manifest_dir),
-         :ok <- create_manifest_dir(destination, Keyword.get(opts, :force, false)),
-         {:ok, template_dir} <-
-           Keyword.get(opts, :template, manifest_type.generator_template())
-           |> check_template() do
-      template_dir
-      |> File.ls!()
-      |> Enum.each(fn file ->
-        base_file = Path.basename(file, ".eex")
-        eex? = file != base_file
-
-        copy_file!(
-          Path.join(template_dir, file),
-          Path.join(destination, base_file),
-          eex? &&
-            opts
-            |> Keyword.get(:assigns, [])
-            |> Keyword.merge(adapter: adapter)
-        )
-      end)
-
-      :ok
-    end
-  end
-
-  defp create_manifest_dir(dir, force?) do
-    cond do
-      not File.exists?(dir) -> File.mkdir_p(dir)
-      force? -> :ok
-      true -> {:error, GeneratorError.exception("Manifest directory already exists: #{dir}")}
-    end
-  end
-
-  defp check_template(template) do
-    if File.exists?(template) do
-      {:ok, template}
-    else
-      {:error, GeneratorError.exception("Template does not exist: #{template}")}
+    with {:ok, adapter} <- Keyword.get(opts, :adapter) |> to_adapter() do
+      opts = Keyword.put(opts, :assigns, [{:adapter, adapter} | Keyword.get(opts, :assigns, [])])
+      DCATR.Manifest.Generator.generate(manifest_type, project_dir, opts)
     end
   end
 
@@ -140,11 +77,5 @@ defmodule Gno.Manifest.Generator do
   def adapter_types do
     Enum.map_join(Store.adapters(), ", ", &Store.Adapter.type_name/1) <>
       " or Generic for the generic store adapter"
-  end
-
-  defp copy_file!(source, dest, false), do: File.copy!(source, dest)
-
-  defp copy_file!(source, dest, assigns) do
-    File.write!(dest, EEx.eval_file(source, assigns: assigns))
   end
 end

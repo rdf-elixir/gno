@@ -27,8 +27,9 @@ defmodule Gno.NS do
   @prefixes RDF.prefix_map(
               gno: __MODULE__.Gno,
               gnoa: __MODULE__.GnoA,
-              prov: PROV,
+              dcatr: DCATR,
               dcat: DCAT,
+              prov: PROV,
               skos: SKOS,
               foaf: FOAF
             )

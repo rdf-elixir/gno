@@ -1,6 +1,0 @@
-@prefix gno: <https://w3id.org/gno#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-
-<http://example.com/Dataset> a gno:Dataset
-    ; dcterms:title "dev dataset"
-.

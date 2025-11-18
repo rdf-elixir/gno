@@ -1,13 +1,41 @@
 @base <http://example.com/> .
+@prefix dcatr: <https://w3id.org/dcatr#> .
 @prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 <Service> a gno:Service
-    ; gno:serviceRepository <Repository>
+    ; dcatr:serviceRepository <Repository>
     ; gno:serviceStore <Fuseki>
 #    ; gno:serviceStore <Oxigraph>
 #    ; gno:serviceStore <GenericStore>
+    ; dcatr:usePrimaryAsDefault false
     ; dcterms:title "test service"
     ; dcterms:creator <User>
     ; dcterms:publisher <User>
+.
+
+<Graph2> a dcatr:DefaultGraph .
+
+<GenericStore> a gno:Store
+    # Fuseki
+    ; gno:storeQueryEndpoint <http://localhost:3030/ontogen-test-dataset/query>
+    ; gno:storeUpdateEndpoint <http://localhost:3030/ontogen-test-dataset/update>
+    ; gno:storeGraphStoreEndpoint <http://localhost:3030/ontogen-test-dataset/data>
+
+    # Oxigraph
+#    ; gno:storeQueryEndpoint <http://localhost:7879/query>
+#    ; gno:storeUpdateEndpoint <http://localhost:7879/update>
+#    ; gno:storeGraphStoreEndpoint <http://localhost:7879/store>
+.
+
+<Fuseki> a gnoa:Fuseki
+    ; gno:storeEndpointDataset "gno-test-dataset"
+    ; gno:storeEndpointPort 3030
+.
+
+<Oxigraph> a gnoa:Oxigraph
+    ; gno:storeEndpointScheme "http"
+    ; gno:storeEndpointHost "localhost"
+    ; gno:storeEndpointPort 7879
 .

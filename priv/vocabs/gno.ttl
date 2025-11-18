@@ -6,6 +6,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcatr: <https://w3id.org/dcatr#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix rtc: <https://w3id.org/rtc#> .
@@ -15,18 +16,10 @@
 ##########################################################################
 
 gno:Manifest a rdfs:Class, owl:Class
-        ; rdfs:subClassOf foaf:Document
+        ; rdfs:subClassOf dcatr:Manifest
         ; rdfs:label "Manifest"
         ; rdfs:comment "A manifest document that describes a Gno service configuration, including repository and store settings."
 .
-
-    gno:manifestService a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
-            ; rdfs:subPropertyOf foaf:primaryTopic
-            ; rdfs:domain gno:Manifest
-            ; rdfs:range  gno:Service
-            ; rdfs:label "manifest service"
-            ; rdfs:comment "Links a manifest to its primary service configuration."
-    .
 
 
 ##########################################################################
@@ -34,19 +27,11 @@ gno:Manifest a rdfs:Class, owl:Class
 ##########################################################################
 
 gno:Service a rdfs:Class, owl:Class
-        ; rdfs:subClassOf dcat:DataService
+        ; rdfs:subClassOf dcatr:Service
         ; owl:disjointWith gno:Repository, gno:Store, gno:Dataset
         ; rdfs:label "Service"
         ; rdfs:comment "A gno:Service is a composition of a gno:Repository in a specific gno:Store."
 .
-    
-    gno:serviceRepository a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
-            ; rdfs:subPropertyOf dcat:servesDataset
-            ; rdfs:domain gno:Service
-            ; rdfs:range  gno:Repository
-            ; rdfs:label "service repository"
-            ; rdfs:comment "Links a service to its repository configuration."
-    .
     
     gno:serviceStore a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
             ; rdfs:domain gno:Service
@@ -62,40 +47,9 @@ gno:Service a rdfs:Class, owl:Class
             ; rdfs:comment "Links a service to its commit operation configuration."
     .
 
-##########################################################################
-# Repository
-##########################################################################
-
-gno:Repository a rdfs:Class, owl:Class
-        ; rdfs:subClassOf dcat:Catalog
-        ; owl:disjointWith gno:Service, gno:Store, gno:Dataset
-        ; rdfs:label "Repository"
-        ; rdfs:comment "Represents a Gno repository, which is a DCAT catalog containing three components: 1) the dataset, 2) an implicit metadata graph and 3) potentially additional system graphs. The metadata graph contains the DCAT catalog description of the repository itself, including descriptions of the dataset and the system graphs."
-.
-
-    gno:repositoryDataset a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
-            ; rdfs:subPropertyOf dcat:dataset
-            ; rdfs:domain gno:Repository
-            ; rdfs:range  gno:Dataset
-            ; rdfs:label "repository dataset"
-            ; rdfs:comment "Links a repository to its primary dataset."
-    .
-
 
 ##########################################################################
-# Dataset
-##########################################################################
-
-gno:Dataset a rdfs:Class, owl:Class
-        ; rdfs:subClassOf dcat:Dataset
-        ; owl:disjointWith gno:Service, gno:Store, gno:Repository
-        ; rdfs:label "Dataset"
-        ; rdfs:comment "Represents the RDF dataset within a Gno repository with actual user data. It contains the actual data being managed by Gno."
-.
-
-
-##########################################################################
-# Dataset
+# Store
 ##########################################################################
 
 gno:Store a rdfs:Class, owl:Class

@@ -1,4 +1,0 @@
-@prefix foaf: <http://xmlns.com/foaf/0.1/> .
-
-<http://example.com/Agent> a foaf:Agent ;
-    foaf:name "Max Mustermann" .

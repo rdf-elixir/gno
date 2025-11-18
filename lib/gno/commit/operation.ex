@@ -66,7 +66,11 @@ defmodule Gno.CommitOperation do
 
   @impl true
   def all_changes(processor) do
-    Map.put(processor.additional_changes, :dataset, processor.effective_changeset)
+    Processor.add_additional_changes(
+      processor.additional_changes,
+      Gno.default_target_graph(),
+      processor.effective_changeset
+    )
   end
 
   @impl true
@@ -90,7 +94,7 @@ defmodule Gno.CommitOperation do
   @impl true
   def handle_step(:apply_changes, processor) do
     with {:ok, update} <-
-           Update.build(processor.service.repository, Processor.all_changes(processor)),
+           Update.build(processor.service, Processor.all_changes(processor)),
          :ok <- Service.handle_sparql(update, processor.service) do
       {:ok, %Processor{processor | sparql_update: update}}
     end
@@ -125,7 +129,7 @@ defmodule Gno.CommitOperation do
   @impl true
   def rollback(state, processor) when state in @rollback_update_states do
     with {:ok, update} <-
-           Update.build_revert(processor.service.repository, Processor.all_changes(processor)),
+           Update.build_revert(processor.service, Processor.all_changes(processor)),
          :ok <- Service.handle_sparql(update, processor.service) do
       {:ok, processor}
     end

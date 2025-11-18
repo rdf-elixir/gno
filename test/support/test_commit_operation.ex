@@ -24,7 +24,7 @@ defmodule TestCommitOperation do
   def all_changes(processor) do
     processor
     |> super()
-    |> Processor.add_additional_changes(:repo,
+    |> Processor.add_additional_changes(:repo_manifest,
       add: RDF.graph(@commit_id |> EX.customMetadata("test"))
     )
   end

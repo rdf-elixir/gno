@@ -1,7 +1,7 @@
 defmodule Gno.Commit.Update do
   @moduledoc false
 
-  alias Gno.{Repository, Changeset, EffectiveChangeset}
+  alias Gno.{Service, Changeset, EffectiveChangeset}
   alias RDF.NTriples
 
   @type changes :: Changeset.t() | EffectiveChangeset.t()
@@ -10,14 +10,14 @@ defmodule Gno.Commit.Update do
   @doc """
   Builds a SPARQL update operation for the given changes.
   """
-  @spec build(Repository.t(), graph_changes()) :: Gno.Store.SPARQL.Operation.t()
-  def build(repo, additional_changes) do
+  @spec build(Service.t(), graph_changes()) :: Gno.Store.SPARQL.Operation.t()
+  def build(service, additional_changes) do
     """
     DELETE DATA {
-      #{Enum.map_join(additional_changes, "\n", fn {graph_name, changes} -> graph_changes(repo, graph_name, deletes(changes)) end)}
+      #{Enum.map_join(additional_changes, "\n", fn {graph_name, changes} -> graph_changes(service, graph_name, deletes(changes)) end)}
     } ;
     INSERT DATA {
-      #{Enum.map_join(additional_changes, "\n", fn {graph_name, changes} -> graph_changes(repo, graph_name, inserts(changes)) end)}
+      #{Enum.map_join(additional_changes, "\n", fn {graph_name, changes} -> graph_changes(service, graph_name, inserts(changes)) end)}
     }
     """
     |> Gno.Store.SPARQL.Operation.update()
@@ -26,8 +26,8 @@ defmodule Gno.Commit.Update do
   @doc """
   Builds a SPARQL update operation for reverting the given changes.
   """
-  def build_revert(repo, additional_changes) do
-    build(repo, invert(additional_changes))
+  def build_revert(service, additional_changes) do
+    build(service, invert(additional_changes))
   end
 
   defp deletes(%Changeset{} = changeset), do: Changeset.deletes(changeset)
@@ -43,10 +43,14 @@ defmodule Gno.Commit.Update do
   defp do_invert(%EffectiveChangeset{} = changeset), do: EffectiveChangeset.invert(changeset)
   defp do_invert(%Changeset{} = changeset), do: Changeset.invert(changeset)
 
-  defp graph_changes(_repo, _graph_id, nil), do: ""
+  defp graph_changes(_service, _graph_id, nil), do: ""
+  defp graph_changes(_service, :default, changes), do: triples(changes)
 
-  defp graph_changes(%repository_type{} = repo, graph_name, changes) do
-    "GRAPH <#{repository_type.graph_name(repo, graph_name)}> { #{triples(changes)} }"
+  defp graph_changes(%service_type{} = service, graph_name, changes) do
+    case service_type.graph_name(service, graph_name) do
+      :default -> triples(changes)
+      resolved_graph_name -> "GRAPH <#{resolved_graph_name}> { #{triples(changes)} }"
+    end
   end
 
   defp triples(nil), do: ""

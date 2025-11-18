@@ -5,16 +5,14 @@ defmodule Gno.TestFactories do
 
   use RDF
 
+  alias Gno.{Changeset, EffectiveChangeset, Commit, CommitOperation}
   alias RDF.Graph
-  alias Gno.{Changeset, EffectiveChangeset, Commit, CommitOperation, Repository, Dataset}
 
   alias Gno.TestNamespaces.EX
   @compile {:no_warn_undefined, Gno.TestNamespaces.EX}
 
-  def id(:repository), do: ~I<http://example.com/test/repo>
-  def id(:alt_repository), do: ~I<http://example.com/test/alt_repo>
-  def id(:repo), do: id(:repository)
-  def id(:alt_repo), do: id(:alt_repository)
+  def id(:repo_manifest), do: ~I<http://example.com/test/repository_manifest>
+  def id(:alt_repo_manifest), do: ~I<http://example.com/test/alt_repository_manifest>
   def id(:dataset), do: ~I<http://example.com/test/dataset>
   def id(:alt_dataset), do: ~I<http://example.com/test/alt_dataset>
   def id(resource) when is_rdf_resource(resource), do: resource
@@ -99,7 +97,7 @@ defmodule Gno.TestFactories do
   def subgraph, do: @subgraph
 
   def alt_service(service, attrs \\ []) do
-    repo_id = Keyword.get(attrs, :repo_id, :alt_repo)
+    repo_id = Keyword.get(attrs, :repo_id, :alt_repo_manifest)
     dataset_id = Keyword.get(attrs, :dataset_id, :alt_dataset)
     store = Keyword.get(attrs, :store, service.store)
 
@@ -125,30 +123,6 @@ defmodule Gno.TestFactories do
 
   def fuseki_store(dataset_name \\ "test-dataset") do
     Gno.Store.Adapters.Fuseki.build!(~I<http://example.com/TestFuseki>, dataset: dataset_name)
-  end
-
-  def repository(id \\ :repository, attrs \\ []) do
-    id
-    |> id()
-    |> Repository.new!(repository_attrs(attrs))
-  end
-
-  def repository_attrs(attrs \\ []) do
-    [
-      dataset: Keyword.get(attrs, :dataset, dataset())
-    ]
-    |> Keyword.merge(attrs)
-  end
-
-  def dataset(id \\ :dataset, attrs \\ []) do
-    id
-    |> id()
-    |> Dataset.build!(dataset_attrs(attrs))
-  end
-
-  def dataset_attrs(attrs \\ []) do
-    []
-    |> Keyword.merge(attrs)
   end
 
   def changeset_attrs(attrs \\ []) do

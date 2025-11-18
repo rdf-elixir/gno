@@ -1,4 +1,0 @@
-@prefix gno: <https://w3id.org/gno#> .
-@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
-
-<http://example.com/Store> a gnoa:Oxigraph .
