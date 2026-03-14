@@ -142,9 +142,15 @@ defmodule Gno.ServiceTest do
       assert {:error, :repository_not_found} = Service.check_setup(service)
     end
 
-    test "returns :ok after setup", %{service: service} do
+    test "returns :ok after setup (multi-graph)", %{service: service} do
       assert {:ok, _} = Gno.Service.Setup.setup(service)
       assert :ok = Service.check_setup(service)
+    end
+
+    test "returns :ok after setup (single-graph)", %{store: store} do
+      single_graph_service = single_graph_service(service(), store: store)
+      assert {:ok, _} = Gno.Service.Setup.setup(single_graph_service)
+      assert :ok = Service.check_setup(single_graph_service)
     end
   end
 
@@ -170,9 +176,15 @@ defmodule Gno.ServiceTest do
       assert {:error, :invalid_repository_structure} = Service.validate_setup(service)
     end
 
-    test "returns :ok after setup", %{service: service} do
+    test "returns :ok after setup (multi-graph)", %{service: service} do
       assert {:ok, _} = Gno.Service.Setup.setup(service)
       assert :ok = Service.validate_setup(service)
+    end
+
+    test "returns :ok after setup (single-graph)", %{store: store} do
+      single_graph_service = single_graph_service(service(), store: store)
+      assert {:ok, _} = Gno.Service.Setup.setup(single_graph_service)
+      assert :ok = Service.validate_setup(single_graph_service)
     end
   end
 

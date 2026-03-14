@@ -145,7 +145,9 @@ defmodule Gno.Service do
     """
     #{RDF.prefix_map(dcatr: DCATR) |> RDF.PrefixMap.to_sparql()}
     ASK {
-      <#{service.repository.__id__}> dcatr:repositoryDataset ?dataset .
+      { <#{service.repository.__id__}> dcatr:repositoryDataset ?x . }
+      UNION
+      { <#{service.repository.__id__}> dcatr:repositoryDataGraph ?x . }
     }
     """
     |> Operation.ask!()
@@ -165,7 +167,9 @@ defmodule Gno.Service do
     """
     #{RDF.prefix_map(dcatr: DCATR) |> RDF.PrefixMap.to_sparql()}
     ASK {
-      <#{service.repository.__id__}> dcatr:repositoryDataset ?dataset .
+      { <#{service.repository.__id__}> dcatr:repositoryDataset ?x . }
+      UNION
+      { <#{service.repository.__id__}> dcatr:repositoryDataGraph ?x . }
     }
     """
     |> Operation.ask!()

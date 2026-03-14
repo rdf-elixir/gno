@@ -112,6 +112,24 @@ defmodule Gno.TestFactories do
     }
   end
 
+  def single_graph_service(service, attrs \\ []) do
+    repo_id = Keyword.get(attrs, :repo_id, :alt_repo_manifest)
+    store = Keyword.get(attrs, :store, service.store)
+    primary_graph = service.repository.primary_graph
+
+    %{
+      service
+      | repository: %{
+          service.repository
+          | __id__: id(repo_id),
+            dataset: nil,
+            data_graph: primary_graph,
+            primary_graph: primary_graph
+        },
+        store: store
+    }
+  end
+
   def unavailable_fuseki do
     Gno.Store.Adapters.Fuseki.build!(
       ~I<http://example.com/UnreachableFuseki>,
