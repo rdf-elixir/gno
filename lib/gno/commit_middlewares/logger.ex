@@ -130,7 +130,7 @@ defmodule Gno.CommitLogger do
   end
 
   defp do_log(entry, middleware) do
-    String.to_atom(entry.level || middleware.log_level)
+    String.to_existing_atom(entry.level || middleware.log_level)
     |> Logger.log(entry.message, entry.metadata)
   end
 end
