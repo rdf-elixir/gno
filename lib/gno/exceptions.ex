@@ -95,39 +95,36 @@ defmodule Gno.Store.UnavailableError do
   Raised when a store is unavailable for operations.
   """
 
-  defexception [:reason, :store, :error]
+  defexception [:reason, :store, :endpoint, :error]
 
   @type t :: %__MODULE__{
           reason: any,
           store: Gno.Store.t(),
+          endpoint: String.t() | nil,
           error: term() | nil
         }
 
-  def message(%{reason: :server_unreachable, store: store}) do
-    "Store server unreachable: #{store.endpoint}"
+  def message(%{reason: :server_unreachable, endpoint: endpoint}) do
+    "Store server unreachable: #{endpoint}"
   end
 
-  def message(%{reason: :dataset_not_found, store: store}) do
-    "Dataset not found on store: #{store.dataset} at #{store.endpoint}"
+  def message(%{reason: :dataset_not_found, store: store, endpoint: endpoint}) do
+    "Dataset not found on store: #{store.dataset} at #{endpoint}"
   end
 
-  def message(%{reason: :permission_denied, store: store}) do
-    "Permission denied for store: #{store.endpoint}"
+  def message(%{reason: :query_failed, endpoint: endpoint, error: error}) do
+    "Query failed on store #{endpoint}: #{inspect(error)}"
   end
 
-  def message(%{reason: :query_failed, store: store, error: error}) do
-    "Query failed on store #{store.endpoint}: #{inspect(error)}"
+  def message(%{reason: :admin_query_failed, endpoint: endpoint, error: error}) do
+    "Admin query failed on store #{endpoint}: #{inspect(error)}"
   end
 
-  def message(%{reason: :admin_query_failed, store: store, error: error}) do
-    "Admin query failed on store #{store.endpoint}: #{inspect(error)}"
+  def message(%{reason: reason, endpoint: endpoint, error: nil}) do
+    "Store unavailable (#{reason}): #{endpoint}"
   end
 
-  def message(%{reason: reason, store: store, error: nil}) do
-    "Store unavailable (#{reason}): #{store.endpoint}"
-  end
-
-  def message(%{reason: reason, store: store, error: error}) do
-    "Store unavailable (#{reason}): #{store.endpoint}: #{inspect(error)}"
+  def message(%{reason: reason, endpoint: endpoint, error: error}) do
+    "Store unavailable (#{reason}): #{endpoint}: #{inspect(error)}"
   end
 end

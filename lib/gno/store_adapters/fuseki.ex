@@ -159,7 +159,9 @@ defmodule Gno.Store.Adapters.Fuseki do
   Checks if the Fuseki server is available by pinging it.
   """
   def ping(%__MODULE__{} = adapter, _opts \\ []) do
-    case Tesla.get(ping_endpoint(adapter)) do
+    ping_url = ping_endpoint(adapter)
+
+    case Tesla.get(ping_url) do
       {:ok, %Tesla.Env{status: 200}} ->
         :ok
 
@@ -168,6 +170,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          Gno.Store.UnavailableError.exception(
            reason: :server_unreachable,
            store: adapter,
+           endpoint: ping_url,
            error: "HTTP #{status}"
          )}
 
@@ -176,6 +179,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          Gno.Store.UnavailableError.exception(
            reason: :server_unreachable,
            store: adapter,
+           endpoint: ping_url,
            error: reason
          )}
     end
@@ -263,7 +267,9 @@ defmodule Gno.Store.Adapters.Fuseki do
   """
   def metrics(%__MODULE__{} = adapter) do
     # Metrics endpoint returns plain text, not JSON
-    case Tesla.get(metrics_endpoint(adapter)) do
+    metrics_url = metrics_endpoint(adapter)
+
+    case Tesla.get(metrics_url) do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
         {:ok, body}
 
@@ -272,6 +278,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          %Gno.Store.UnavailableError{
            reason: :admin_query_failed,
            store: adapter,
+           endpoint: metrics_url,
            error: "Metrics request failed: HTTP #{status}"
          }}
 
@@ -280,6 +287,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          %Gno.Store.UnavailableError{
            reason: :admin_query_failed,
            store: adapter,
+           endpoint: metrics_url,
            error: reason
          }}
     end
@@ -299,7 +307,11 @@ defmodule Gno.Store.Adapters.Fuseki do
       case dataset_info(adapter) do
         {:ok, nil} ->
           {:error,
-           Gno.Store.UnavailableError.exception(reason: :dataset_not_found, store: adapter)}
+           Gno.Store.UnavailableError.exception(
+             reason: :dataset_not_found,
+             store: adapter,
+             endpoint: datasets_admin_endpoint(adapter)
+           )}
 
         {:ok, _} ->
           :ok
@@ -375,6 +387,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          %Gno.Store.UnavailableError{
            reason: :admin_query_failed,
            store: adapter,
+           endpoint: endpoint_url,
            error: "Admin request failed: HTTP #{status}"
          }}
 
@@ -383,6 +396,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          %Gno.Store.UnavailableError{
            reason: :admin_query_failed,
            store: adapter,
+           endpoint: endpoint_url,
            error: "Failed to decode response: #{inspect(decode_error)}"
          }}
 
@@ -391,6 +405,7 @@ defmodule Gno.Store.Adapters.Fuseki do
          %Gno.Store.UnavailableError{
            reason: :admin_query_failed,
            store: adapter,
+           endpoint: endpoint_url,
            error: reason
          }}
     end

@@ -169,7 +169,16 @@ defmodule Gno.Store do
 
       {:error, reason} ->
         {:error,
-         Gno.Store.UnavailableError.exception(reason: :query_failed, store: store, error: reason)}
+         Gno.Store.UnavailableError.exception(
+           reason: :query_failed,
+           store: store,
+           endpoint:
+             case query_endpoint(store) do
+               {:ok, url} -> url
+               _ -> nil
+             end,
+           error: reason
+         )}
     end
   end
 end
