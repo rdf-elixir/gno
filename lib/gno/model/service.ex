@@ -59,7 +59,7 @@ defmodule Gno.Service do
     if commit_operation_type = CommitOperation.type(commit_type) do
       {:ok, default_commit_operation(commit_operation_type, id)}
     else
-      {:error, "invalid commit operation type: #{inspect(commit_type)}"}
+      {:error, ArgumentError.exception("invalid commit operation type: #{inspect(commit_type)}")}
     end
   end
 
