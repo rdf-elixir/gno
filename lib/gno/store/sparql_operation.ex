@@ -3,7 +3,7 @@ defmodule Gno.Store.SPARQL.Operation do
 
   @type query :: String.t()
   @type update :: String.t()
-  @type data :: RDF.Data.t()
+  @type data :: RDF.Data.Source.t()
   @type payload :: query() | update() | data() | nil
 
   @type type :: :query | :update

@@ -6,6 +6,8 @@ defmodule Gno.Changeset.Action do
 
   @type t :: :add | :update | :replace | :remove | :overwrite
 
+  @type changes :: Gno.Changeset.t() | Gno.EffectiveChangeset.t() | RDF.Diff.t() | keyword()
+
   @doc """
   Returns a list of the action fields.
 

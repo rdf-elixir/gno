@@ -1,21 +1,29 @@
 defmodule Gno.CommitMiddleware do
   use Grax.Schema
 
+  alias Gno.Commit.Processor
+
   schema Gno.CommitMiddleware do
     field :state
   end
 
   @type type :: module
+  @type middleware :: %{
+          :__struct__ => type(),
+          :__id__ => term(),
+          :state => term(),
+          optional(atom()) => term()
+        }
 
-  @callback handle_state(state :: atom(), t(), Processor.t()) ::
+  @callback handle_state(state :: atom(), middleware(), Processor.t()) ::
               {:ok, Processor.t()}
-              | {:ok, Processor.t(), t()}
+              | {:ok, Processor.t(), middleware()}
               | {:error, term()}
               | {:error, term(), Processor.t()}
 
-  @callback rollback(t(), Processor.t()) ::
+  @callback rollback(middleware(), Processor.t()) ::
               {:ok, Processor.t()}
-              | {:ok, Processor.t(), t()}
+              | {:ok, Processor.t(), middleware()}
               | {:error, term()}
               | {:error, term(), Processor.t()}
 

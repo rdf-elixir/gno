@@ -135,7 +135,7 @@ defmodule Gno do
       # With specific graph
       Gno.execute(operation, graph: "http://example.com/graph")
   """
-  @spec execute(Operation.t(), keyword()) :: {:ok, any()} | {:error, any()}
+  @spec execute(Operation.t(), keyword()) :: :ok | {:ok, any()} | {:error, any()}
   def execute(operation, opts \\ []) do
     {service, opts} = Keyword.pop(opts, :service)
     {store, opts} = Keyword.pop(opts, :store)

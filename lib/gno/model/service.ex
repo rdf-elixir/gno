@@ -190,7 +190,7 @@ defmodule Gno.Service do
   end
 
   @doc false
-  @spec fetch_repository(t(), keyword()) :: {:ok, Repository.t()} | {:error, term()}
+  @spec fetch_repository(t(), keyword()) :: {:ok, DCATR.Repository.t()} | {:error, term()}
   def fetch_repository(%_service_type{repository: %repository_type{}} = service, opts \\ []) do
     depth = Keyword.get(opts, :depth, 99)
 

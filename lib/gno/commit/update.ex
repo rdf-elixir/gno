@@ -10,7 +10,8 @@ defmodule Gno.Commit.Update do
   @doc """
   Builds a SPARQL update operation for the given changes.
   """
-  @spec build(Service.t(), graph_changes()) :: Gno.Store.SPARQL.Operation.t()
+  @spec build(Service.t(), graph_changes()) ::
+          {:ok, Gno.Store.SPARQL.Operation.t()} | {:error, term()}
   def build(service, additional_changes) do
     """
     DELETE DATA {

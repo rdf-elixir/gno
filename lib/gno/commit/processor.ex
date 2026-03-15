@@ -109,7 +109,7 @@ defmodule Gno.Commit.Processor do
           middlewares: [CommitMiddleware.t()],
           changeset: Gno.Changeset.t(),
           effective_changeset: Gno.EffectiveChangeset.t(),
-          sparql_update: Update.t(),
+          sparql_update: Gno.Store.SPARQL.Operation.t(),
           additional_changes: %{optional(atom) => any()},
           metadata: Graph.t(),
           assigns: assigns(),

@@ -7,11 +7,22 @@ defmodule Gno.Store.Adapter do
   alias Gno.Store.InvalidEndpointError
 
   @type type :: module
-  @type t :: struct
+  @type t :: %{
+          :__struct__ => type(),
+          :__id__ => term(),
+          :query_endpoint => RDF.IRI.t() | nil,
+          :update_endpoint => RDF.IRI.t() | nil,
+          :graph_store_endpoint => RDF.IRI.t() | nil,
+          :scheme => String.t() | nil,
+          :host => String.t() | nil,
+          :port => integer() | nil,
+          :userinfo => String.t() | nil,
+          optional(atom()) => term()
+        }
 
   @type endpoint_url :: String.t() | nil
   @type graph_name :: RDF.IRI.t() | nil
-  @type result :: SPARQL.Query.Result.t() | RDF.Data.t() | nil
+  @type result :: SPARQL.Query.Result.t() | RDF.Data.Source.t() | nil
 
   @callback determine_query_endpoint(t()) :: {:ok, endpoint_url()} | {:error, any}
   @callback determine_update_endpoint(t()) :: {:ok, endpoint_url()} | {:error, any}

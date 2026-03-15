@@ -25,7 +25,7 @@ defmodule Gno.EffectiveChangeset do
   @doc """
   Creates a new valid changeset.
   """
-  @spec new(t() | keyword, opts :: keyword) :: {:ok, t()} | {:error, any()}
+  @spec new(Action.changes(), opts :: keyword) :: {:ok, t()} | {:error, any()}
   def new(changes, opts \\ [])
 
   def new(%__MODULE__{} = changeset, opts) do
@@ -54,7 +54,7 @@ defmodule Gno.EffectiveChangeset do
 
   As opposed to `new/1` this function fails in error cases.
   """
-  @spec new!(t() | keyword, opts :: keyword) :: t()
+  @spec new!(Action.changes(), opts :: keyword) :: t()
   def new!(args, opts \\ []), do: bang!(&new/2, [args, opts])
 
   @doc """
