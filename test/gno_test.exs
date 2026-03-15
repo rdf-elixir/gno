@@ -2,6 +2,7 @@ defmodule GnoTest do
   use Gno.StoreCase
   doctest Gno
 
+  @tag :internet
   test "operation helpers" do
     assert Gno.ask("ASK { ?s ?p ?o }") == {:ok, false}
 
@@ -95,6 +96,7 @@ defmodule GnoTest do
     assert Gno.create(Gno.graph_name(:repo_manifest)) == :ok
   end
 
+  @tag :internet
   test "operation helpers with named graphs" do
     graph1 = "http://example.com/graph1"
     graph2 = "http://example.com/graph2"
