@@ -8,7 +8,7 @@ defmodule Gno.Changeset.Helper do
   def inserts(%{add: add, update: update, replace: replace}) do
     [add, update, replace]
     |> Enum.reject(&is_nil/1)
-    |> Enum.sort_by(&Graph.subject_count/1)
+    |> Enum.sort_by(&Graph.subject_count/1, :desc)
     |> case do
       [] -> Graph.new()
       [graph] -> graph
