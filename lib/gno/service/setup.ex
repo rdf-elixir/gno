@@ -233,8 +233,8 @@ defmodule Gno.Service.Setup do
             {:error, error} -> [{:extension_teardown, error} | errors]
           end
 
-        _ ->
-          errors
+        invalid ->
+          raise ArgumentError, "Invalid :extension value #{inspect(invalid)}"
       end
 
     # Service data removal
