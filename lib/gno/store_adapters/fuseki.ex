@@ -338,7 +338,7 @@ defmodule Gno.Store.Adapters.Fuseki do
     client = Tesla.client([Tesla.Middleware.FormUrlencoded])
 
     case Tesla.post(client, admin_url, %{dbType: db_type, dbName: dataset_name}) do
-      {:ok, %Tesla.Env{status: 200}} ->
+      {:ok, %Tesla.Env{status: status}} when status in [200, 201] ->
         :ok
 
       {:ok, %Tesla.Env{status: 409}} ->
