@@ -150,7 +150,7 @@ defmodule Gno.EffectiveChangeset do
       neutralized_removals = graph_intersection(changeset.remove, add)
       neutralized_overwrites = graph_intersection(changeset.overwrite, add)
 
-      %__MODULE__{
+      %{
         changeset
         | add:
             graph_add(
@@ -174,7 +174,7 @@ defmodule Gno.EffectiveChangeset do
       neutralized_removals = graph_intersection(changeset.remove, update)
       neutralized_overwrites = graph_intersection(changeset.overwrite, update)
 
-      %__MODULE__{
+      %{
         changeset
         | update:
             graph_add(
@@ -198,7 +198,7 @@ defmodule Gno.EffectiveChangeset do
       neutralized_removals = graph_intersection(changeset.remove, replace)
       neutralized_overwrites = graph_intersection(changeset.overwrite, replace)
 
-      %__MODULE__{
+      %{
         changeset
         | replace:
             graph_add(
@@ -223,7 +223,7 @@ defmodule Gno.EffectiveChangeset do
       neutralized_updates = graph_intersection(changeset.update, remove)
       neutralized_replaces = graph_intersection(changeset.replace, remove)
 
-      %__MODULE__{
+      %{
         changeset
         | add: graph_delete(changeset.add, neutralized_adds),
           update: graph_delete(changeset.update, neutralized_updates),
@@ -250,7 +250,7 @@ defmodule Gno.EffectiveChangeset do
       neutralized_updates = graph_intersection(changeset.update, overwrite)
       neutralized_replaces = graph_intersection(changeset.replace, overwrite)
 
-      %__MODULE__{
+      %{
         changeset
         | add: graph_delete(changeset.add, neutralized_adds),
           update: graph_delete(changeset.update, neutralized_updates),

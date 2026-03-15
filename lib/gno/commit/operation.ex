@@ -77,7 +77,7 @@ defmodule Gno.CommitOperation do
   def handle_step(:init, processor) do
     with {:ok, changeset} <- init_changeset(processor.input) do
       {:ok,
-       %Processor{processor | changeset: changeset}
+       %{processor | changeset: changeset}
        |> Processor.set_commit_id(@preliminary_commit_id, false)}
     end
   end
@@ -86,7 +86,7 @@ defmodule Gno.CommitOperation do
   def handle_step(:preparation, processor) do
     with {:ok, effective_changeset} <-
            Gno.EffectiveChangeset.Query.call(processor.service, processor.changeset) do
-      %Processor{processor | effective_changeset: effective_changeset}
+      %{processor | effective_changeset: effective_changeset}
       |> Processor.operation_type(processor).prepare_commit()
     end
   end
@@ -96,7 +96,7 @@ defmodule Gno.CommitOperation do
     with {:ok, update} <-
            Update.build(processor.service, Processor.all_changes(processor)),
          :ok <- Service.handle_sparql(update, processor.service) do
-      {:ok, %Processor{processor | sparql_update: update}}
+      {:ok, %{processor | sparql_update: update}}
     end
   end
 
@@ -108,7 +108,7 @@ defmodule Gno.CommitOperation do
   def handle_empty_changeset(processor, "skip", _changeset), do: {:skip_transaction, processor}
 
   def handle_empty_changeset(processor, "proceed", _changeset) do
-    {:ok, %Processor{processor | effective_changeset: EffectiveChangeset.empty()}}
+    {:ok, %{processor | effective_changeset: EffectiveChangeset.empty()}}
   end
 
   def handle_empty_changeset(_processor, invalid, _changeset),
