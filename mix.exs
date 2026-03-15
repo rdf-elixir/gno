@@ -12,6 +12,7 @@ defmodule Gno.MixProject do
       aliases: aliases(),
       preferred_cli_env: [
         check: :test
+      dialyzer: dialyzer(),
       ]
     ]
   end
@@ -19,6 +20,12 @@ defmodule Gno.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
     ]
   end
 
@@ -37,7 +44,8 @@ defmodule Gno.MixProject do
       {:nimble_options, "~> 1.1"},
       {:tesla, "~> 1.2"},
       {:jason, "~> 1.4"},
-      {:hackney, "~> 1.15", only: [:dev, :test]}
+      {:hackney, "~> 1.15", only: [:dev, :test]},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
