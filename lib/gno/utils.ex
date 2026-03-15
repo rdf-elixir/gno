@@ -4,6 +4,7 @@ defmodule Gno.Utils do
   def bang!(fun, args) do
     case apply(fun, args) do
       {:ok, result} -> result
+      :ok -> :ok
       {:error, error} -> raise error
     end
   end
