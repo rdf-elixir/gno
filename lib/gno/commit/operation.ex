@@ -1,4 +1,28 @@
 defmodule Gno.CommitOperation do
+  @moduledoc """
+  Configuration of a commit operation for a `Gno.Service`.
+
+  Defines the `Gno.CommitMiddleware` pipeline and handles different input changeset types.
+  Implements `Gno.CommitOperation.Type` to provide the standard commit workflow
+  executed by `Gno.Commit.Processor`:
+
+  - Initializes changesets from various input formats
+  - Computes effective changesets by querying current state
+  - Builds and executes SPARQL updates
+  - Handles empty changesets (configurable via `on_no_effective_changes`)
+  - Performs rollback on failure
+
+  ## Properties
+
+  - `middlewares` - ordered list of `Gno.CommitMiddleware` instances invoked
+    at each state transition
+  - `on_no_effective_changes` - what to do when the computed
+    `Gno.EffectiveChangeset` contains no changes:
+    - `"error"` (default) — return an error
+    - `"skip"` — skip the transaction phase, proceed to post-commit
+    - `"proceed"` — continue with an empty changeset through all phases
+  """
+
   use Grax.Schema
 
   alias Gno.{Commit, Changeset, EffectiveChangeset, CommitMiddleware, Service}
@@ -25,6 +49,9 @@ defmodule Gno.CommitOperation do
     :ending_transaction
   ]
 
+  @doc """
+  Creates a new commit operation with an auto-generated blank node ID.
+  """
   def new(attrs \\ []) do
     {id, attrs} = Keyword.pop(attrs, :id, RDF.bnode())
     build(id, attrs)
@@ -32,6 +59,9 @@ defmodule Gno.CommitOperation do
 
   def new!(attrs \\ []), do: bang!(&new/1, [attrs])
 
+  @doc """
+  Builds a commit operation with the given ID and attributes.
+  """
   def build(id, attrs \\ []) do
     with {:ok, commit_operation} <- super(id, attrs) do
       init_middlewares(commit_operation)
@@ -179,6 +209,9 @@ defmodule Gno.CommitOperation do
   def type?(%RDF.IRI{} = iri), do: iri |> Grax.schema() |> type?()
   def type?(_), do: false
 
+  @doc """
+  Returns the commit operation type module for the given IRI, or `nil` if not a commit operation type.
+  """
   def type(%RDF.IRI{} = iri) do
     schema = Grax.schema(iri)
 

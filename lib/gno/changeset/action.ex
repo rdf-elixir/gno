@@ -1,5 +1,18 @@
 defmodule Gno.Changeset.Action do
-  @moduledoc false
+  @moduledoc """
+  Defines the action types and shared utilities for `Gno.Changeset` and `Gno.EffectiveChangeset`.
+
+  The five action types are:
+
+  - `:add` — insert new statements
+  - `:update` — add statements, overwriting at property level (subject+predicate)
+  - `:replace` — add statements, overwriting at subject level
+  - `:remove` — delete statements
+  - `:overwrite` — only used in `Gno.EffectiveChangeset` to track implicit removals
+    from `:update` and `:replace` actions
+
+  `Gno.Changeset` uses only the first four; `Gno.EffectiveChangeset` uses all five.
+  """
 
   # during a Changeset.merge these actions will be applied in the reverse order defined here
   @fields [:add, :update, :replace, :remove, :overwrite]
@@ -88,6 +101,7 @@ defmodule Gno.Changeset.Action do
     args |> Keyword.take(fields()) |> Enum.empty?()
   end
 
+  @doc false
   def sort_changes(changes) when is_list(changes) do
     @fields
     |> Enum.reduce_while({[], changes}, fn
@@ -104,5 +118,6 @@ defmodule Gno.Changeset.Action do
     end
   end
 
+  @doc false
   defdelegate graph(value, action), to: Gno.Changeset.Action.Graph
 end

@@ -74,6 +74,9 @@ defmodule Gno.Manifest.Generator do
     end
   end
 
+  @doc """
+  Returns a formatted string of available store adapter type names.
+  """
   def adapter_types do
     Enum.map_join(Store.adapters(), ", ", &Store.Adapter.type_name/1) <>
       " or Generic for the generic store adapter"

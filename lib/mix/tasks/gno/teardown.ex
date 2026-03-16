@@ -1,4 +1,10 @@
 defmodule Mix.Tasks.Gno.Teardown do
+  @moduledoc """
+  Removes the Gno repository from the configured store.
+
+      $ mix gno.teardown
+  """
+
   use Mix.Task
 
   @shortdoc "Remove the Gno repository from the configured store"

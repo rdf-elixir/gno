@@ -1,4 +1,16 @@
 defmodule Mix.Tasks.Gno.Setup do
+  @moduledoc """
+  Installs the Gno repository on the configured store.
+
+      $ mix gno.setup
+
+  ## Options
+
+  - `--no-store-repository-metadata` - skip storing repository metadata
+  - `--on-existing-dataset` - strategy for existing datasets
+  - `--db-type` - database type for store setup
+  """
+
   use Mix.Task
 
   @shortdoc "Install the Gno repository on the configured store"
@@ -22,7 +34,7 @@ defmodule Mix.Tasks.Gno.Setup do
     end
   end
 
-  def build_setup_opts(parsed_opts) do
+  defp build_setup_opts(parsed_opts) do
     store_options =
       []
       |> then(fn store_opts ->

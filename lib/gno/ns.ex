@@ -34,7 +34,13 @@ defmodule Gno.NS do
               foaf: FOAF
             )
 
+  @doc """
+  Returns the default `RDF.PrefixMap` with all Gno-related namespace prefixes.
+  """
   def prefixes, do: @prefixes
 
+  @doc """
+  Returns a `RDF.PrefixMap` limited to the given prefix names.
+  """
   def prefixes(filter), do: RDF.PrefixMap.limit(@prefixes, filter)
 end

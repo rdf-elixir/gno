@@ -1,6 +1,30 @@
 defmodule Gno.Store.Adapter do
   @moduledoc """
-  A behaviour for SPARQL triple stores hosting a `Gno.Repository`.
+  Behaviour for SPARQL triple store adapters.
+
+  Adapters implement endpoint discovery, SPARQL operation dispatch, and
+  lifecycle management (setup/teardown/availability checks).
+
+  ## `use` Options
+
+  The `use Gno.Store.Adapter` macro provides default implementations and
+  supports endpoint URL construction via these options:
+
+  - `:query_endpoint_path` - path appended to the base URL for SPARQL queries
+    (e.g. `"query"`)
+  - `:update_endpoint_path` - path for SPARQL updates (e.g. `"update"`)
+  - `:graph_store_endpoint_path` - path for Graph Store Protocol operations
+    (e.g. `"data"`)
+  - `:dataset_endpoint_segment_template` - a URI template for constructing
+    the dataset-specific URL segment (e.g. `"/{dataset}"`)
+
+  ## Built-in Adapters
+
+  - `Gno.Store.Adapters.Fuseki`
+  - `Gno.Store.Adapters.Oxigraph`
+
+  For SPARQL 1.1-compliant stores without a dedicated adapter, `Gno.Store`
+  can be used directly as a generic adapter.
   """
 
   alias Gno.Store.SPARQL.Operation

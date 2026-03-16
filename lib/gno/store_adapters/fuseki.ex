@@ -1,4 +1,26 @@
 defmodule Gno.Store.Adapters.Fuseki do
+  @moduledoc """
+  A `Gno.Store.Adapter` implementation for [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/).
+
+  ## Manifest Configuration
+
+      @prefix gno:  <http://gno.app/> .
+      @prefix gnoa: <http://gno.app/ns/adapter/> .
+
+      <Fuseki> a gnoa:Fuseki
+          ; gno:storeEndpointScheme "http"         # optional (default: "http")
+          ; gno:storeEndpointHost "localhost"      # optional (default: "localhost")
+          ; gno:storeEndpointPort 3030             # optional (default: 3030)
+          ; gno:storeEndpointDataset "my-dataset"  # required
+      .
+
+  ## Administration
+
+  This adapter also provides access to Fuseki's
+  [HTTP Administration Protocol](https://jena.apache.org/documentation/fuseki2/fuseki-server-protocol.html)
+  for dataset management, server health checks, statistics, and backups.
+  """
+
   use Grax.Schema
 
   alias Gno.NS.GnoA

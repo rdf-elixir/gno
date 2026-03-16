@@ -1,6 +1,8 @@
 defmodule Gno.MixProject do
   use Mix.Project
 
+  @scm_url "https://github.com/rdf-elixir/gno"
+
   def project do
     [
       app: :gno,
@@ -10,7 +12,11 @@ defmodule Gno.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       aliases: aliases(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+
+      # Docs
+      name: "Gno",
+      docs: docs()
     ]
   end
 
@@ -43,7 +49,8 @@ defmodule Gno.MixProject do
       {:tesla, "~> 1.2"},
       {:jason, "~> 1.4"},
       {:hackney, "~> 1.15", only: [:dev, :test]},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -53,6 +60,64 @@ defmodule Gno.MixProject do
       _ -> {dep, version}
     end
   end
+
+  defp docs do
+    [
+      main: "Gno",
+      source_url: @scm_url,
+      groups_for_modules: [
+        Model: [
+          Gno.Service,
+          Gno.Store,
+          Gno.Store.Adapter,
+          Gno.Store.SPARQL.Operation
+        ],
+        Changeset: [
+          Gno.Changeset,
+          Gno.EffectiveChangeset,
+          Gno.Changeset.Action,
+          Gno.Changeset.Action.Graph
+        ],
+        Commit: [
+          Gno.Commit,
+          Gno.Commit.Processor,
+          Gno.CommitOperation,
+          Gno.CommitOperation.Type,
+          Gno.CommitMiddleware,
+          Gno.CommitLogger
+        ],
+        "Store Adapters": [
+          Gno.Store.Adapters.Fuseki,
+          Gno.Store.Adapters.Oxigraph,
+          Gno.Store.Adapters.GraphDB
+        ],
+        Manifest: [
+          Gno.Manifest,
+          Gno.Manifest.Type,
+          Gno.Manifest.Generator
+        ],
+        Setup: [
+          Gno.Service.Setup,
+          Gno.Service.Setup.Extension
+        ],
+        Namespaces: [
+          Gno.NS,
+          Gno.NS.Gno,
+          Gno.NS.GnoA
+        ]
+      ],
+      before_closing_body_tag: &before_closing_body_tag/1
+    ]
+  end
+
+  defp before_closing_body_tag(:html) do
+    """
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad: true})</script>
+    """
+  end
+
+  defp before_closing_body_tag(_), do: ""
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]

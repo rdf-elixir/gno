@@ -1,8 +1,12 @@
 defmodule Gno.Store.GenSPARQL do
+  @moduledoc false
+
   alias Gno.Store
   alias Gno.Store.SPARQL.Operation
   alias RDF.{Graph, Description, Dataset}
 
+  @spec handle(Operation.t(), Store.Adapter.t(), Store.Adapter.graph_name(), keyword()) ::
+          {:ok, Store.Adapter.result()} | :ok | {:error, any()}
   def handle(operation, adapter, graph_name, opts \\ [])
 
   @doc operation: :query

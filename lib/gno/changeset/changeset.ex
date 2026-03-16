@@ -1,4 +1,35 @@
 defmodule Gno.Changeset do
+  @moduledoc """
+  Structured representation of intended RDF graph changes.
+
+  A changeset declares changes through four actions:
+
+  - `:add` - insert new statements (no effect if already present)
+  - `:update` - add statements while removing existing values for the same
+    subject/predicate combinations (property-level overwrite)
+  - `:replace` - add statements while removing all existing statements about
+    the same subjects (subject-level overwrite)
+  - `:remove` - delete statements (no effect if not present)
+
+  ## Creating Changesets
+
+  Changesets can be created from keyword lists, maps, or `RDF.Diff` structs:
+
+      # From keyword list
+      Gno.Changeset.new(add: EX.S |> EX.p(EX.O))
+
+      # Multiple actions
+      Gno.Changeset.new(
+        add: EX.S |> EX.p(EX.O1),
+        replace: EX.S2 |> EX.p(EX.O2),
+        remove: EX.S3 |> EX.p(EX.O3)
+      )
+
+  Before applying, a changeset is typically converted to a `Gno.EffectiveChangeset`
+  that contains only the minimal changes needed against the current repository state.
+  This happens automatically during `Gno.commit/2`.
+  """
+
   alias Gno.Changeset.{Action, Validation, Helper}
   alias RDF.Graph
 
@@ -17,6 +48,7 @@ defmodule Gno.Changeset do
           remove: Graph.t() | nil
         }
 
+  @doc false
   def fields, do: @fields
 
   @doc """
@@ -110,8 +142,14 @@ defmodule Gno.Changeset do
     }
   end
 
+  @doc """
+  Serializes the changeset to an `RDF.Dataset`.
+  """
   def to_rdf(%__MODULE__{} = changeset, opts \\ []), do: Helper.to_rdf(changeset, opts)
 
+  @doc """
+  Deserializes a changeset from an `RDF.Dataset`.
+  """
   def from_rdf(%RDF.Dataset{} = dataset, opts \\ []),
     do: Helper.from_rdf(dataset, __MODULE__, opts)
 

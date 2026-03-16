@@ -1,4 +1,39 @@
 defmodule Gno.CommitMiddleware do
+  @moduledoc """
+  Behaviour for pluggable components in the `Gno.Commit.Processor` pipeline.
+
+  The processor calls `c:handle_state/3` on each middleware at every state
+  transition (see the state machine in `Gno.Commit.Processor`). The callback
+  receives the new state atom, the middleware struct, and the processor, and
+  must return `{:ok, processor}` (optionally with an updated middleware) or
+  an error tuple to abort. On failure, `c:rollback/2` is called on all
+  middlewares that were already invoked.
+
+  The `:state` field on the middleware struct tracks the last state it was
+  called with, managed automatically by the processor.
+
+  ## Defining a Middleware
+
+  Use `def_middleware/2` to define a Grax schema subclassing this module:
+
+      defmodule MyMiddleware do
+        use Gno.CommitMiddleware
+
+        def_middleware MyNS.MyMiddleware do
+          property :my_option, type: :string
+        end
+
+        @impl true
+        def handle_state(:initialized, middleware, processor) do
+          # custom logic
+          {:ok, processor}
+        end
+      end
+
+  Middlewares are configured in the `Gno.CommitOperation` of a `Gno.Service`.
+  See `Gno.CommitLogger` for a built-in example.
+  """
+
   use Grax.Schema
 
   alias Gno.Commit.Processor
@@ -84,6 +119,9 @@ defmodule Gno.CommitMiddleware do
   def type?(%RDF.IRI{} = iri), do: iri |> Grax.schema() |> type?()
   def type?(_), do: false
 
+  @doc """
+  Returns the middleware module for the given IRI, or `nil` if not a middleware.
+  """
   def type(%RDF.IRI{} = iri) do
     schema = Grax.schema(iri)
 

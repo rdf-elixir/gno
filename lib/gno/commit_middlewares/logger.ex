@@ -2,17 +2,37 @@ defmodule Gno.CommitLogger do
   @default_log_states ["initializing", "completed"]
 
   @moduledoc """
-  A middleware for logging commit operations.
+  A `Gno.CommitMiddleware` for logging commit operations.
 
-  This middleware logs key commit events and collects log entries from other middlewares
+  Logs key commit events and collects log entries from other middlewares
   through the processor's `:log` assign.
+
+  ## Manifest Configuration
+
+      @prefix gno: <http://gno.app/> .
+
+      <Service> a gno:Service
+          ; gno:serviceCommitOperation <CommitOperation>
+          # ...
+      .
+
+      <CommitOperation> a gno:CommitOperation
+          ; gno:commitMiddleware ( <Logger> )
+      .
+
+      <Logger> a gno:CommitLogger
+          ; gno:commitLogLevel "debug"       # optional (default: "info")
+          ; gno:commitLogChanges true        # optional (default: false)
+          ; gno:commitLogMetadata true       # optional (default: false)
+      .
 
   ## Options
 
-  - `:log_level` (`gno:commitLogLevel`) - The log level to use (default: `"info"`)
-  - `:log_states` (`gno:commitLogStates`) - List of states to log. `all` logs all states. `none` logs no state changes. (default: `#{@default_log_states}`)
-  - `:log_changes` (`gno:commitLogChanges`) - Whether to log the changeset details (default: `false`)
-  - `:log_metadata` (`gno:commitLogMetadata`) - Whether to log commit metadata (default: `false`)
+  - `:log_level` (`gno:commitLogLevel`) - the log level to use (default: `"info"`)
+  - `:log_states` (`gno:commitLogStates`) - list of states to log; `"all"` logs all
+    states, `"none"` logs no state changes (default: `#{inspect(@default_log_states)}`)
+  - `:log_changes` (`gno:commitLogChanges`) - whether to log changeset details (default: `false`)
+  - `:log_metadata` (`gno:commitLogMetadata`) - whether to log commit metadata (default: `false`)
   """
 
   use Gno.CommitMiddleware

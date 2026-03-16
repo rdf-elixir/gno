@@ -1,4 +1,32 @@
 defmodule Gno.Service do
+  @moduledoc """
+  A `DCATR.Service` for SPARQL triple stores.
+
+  A service combines the structural model from `DCATR.Service` with Gno-specific
+  operational concerns:
+
+  - `store` - a `Gno.Store` backend providing the SPARQL triple store connection
+  - `commit_operation` - a `Gno.CommitOperation` defining the middleware pipeline
+    and commit workflow
+
+  Services are typically loaded from RDF manifest files via `Gno.Manifest` and
+  then used with the functions in the top-level `Gno` module. Repository
+  initialization is handled by `Gno.Service.Setup`.
+
+  ## Graph Selectors
+
+  Many operations accept a graph selector (via the `:graph` option or
+  `graph_name/2`) that is resolved to a concrete graph IRI. Built-in
+  selectors include:
+
+  - `:default` — the default graph of the RDF dataset
+  - `:primary` — the primary data graph designated in the repository manifest
+  - `:repo_manifest` — the repository manifest graph
+  - `:service` — all service graphs (for bulk operations like `drop/2`)
+
+  Custom selectors can be added by overriding `c:DCATR.GraphResolver.resolve_graph_selector/2`.
+  """
+
   use DCATR.Service.Type
 
   alias Gno.Store
@@ -15,6 +43,9 @@ defmodule Gno.Service do
 
   @default_commit_operation_id RDF.bnode("commit-operation")
 
+  @doc """
+  Creates a new service with an auto-generated blank node ID.
+  """
   def new(attrs \\ []) do
     {id, attrs} = Keyword.pop(attrs, :id, RDF.bnode())
     build(id, attrs)
@@ -22,6 +53,9 @@ defmodule Gno.Service do
 
   def new!(attrs \\ []), do: bang!(&new/1, [attrs])
 
+  @doc """
+  Builds a service with the given ID and attributes.
+  """
   def build(id, attrs \\ []) do
     with {:ok, service} <- super(id, attrs) do
       init_commit_operation(service)
@@ -76,6 +110,11 @@ defmodule Gno.Service do
 
   defp normalize_commit_operation(commit_operation, _type, _id), do: {:ok, commit_operation}
 
+  @doc """
+  Executes a `Gno.Store.SPARQL.Operation` through this service's store.
+
+  Resolves graph names via `graph_name/2` before dispatching to `Gno.Store`.
+  """
   # We do not rely on getting concrete structs here, but accept any Grax schema that subclasses
   def handle_sparql(operation, %{store: store} = service, opts \\ []) do
     {graph, opts} = Keyword.pop(opts, :graph, default_graph_for_operation(operation))
@@ -161,6 +200,10 @@ defmodule Gno.Service do
 
   @doc """
   Validates basic setup integrity.
+
+  The default implementation checks for repository existence (same as `check_setup/1`).
+  Extensions can override this via `c:Gno.Service.Setup.Extension.validate/2` for
+  deeper structural validation.
   """
   @spec validate_setup(t()) :: :ok | {:error, term()}
   def validate_setup(%service_type{} = service) do

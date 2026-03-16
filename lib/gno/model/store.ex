@@ -1,6 +1,21 @@
 defmodule Gno.Store do
   @moduledoc """
-  Base Grax schema for triple stores hosting a `Gno.Repository`.
+  Base Grax schema for triple stores hosting a `DCATR.Repository`.
+
+  Concrete store types are defined by `Gno.Store.Adapter` implementations
+  (e.g. `Gno.Store.Adapters.Fuseki`). This module provides generic endpoint
+  resolution and delegates SPARQL operations to the appropriate adapter.
+
+  It can also be used directly as a generic adapter for any SPARQL 1.1
+  protocol-compliant triple store that has no dedicated adapter implementation:
+
+      @prefix gno: <http://gno.app/> .
+
+      <MyStore> a gno:Store
+          ; gno:storeQueryEndpoint <http://localhost:7878/query>       # required
+          ; gno:storeUpdateEndpoint <http://localhost:7878/update>     # optional
+          ; gno:storeGraphStoreEndpoint <http://localhost:7878/store>  # optional
+      .
   """
 
   use Grax.Schema
@@ -16,7 +31,14 @@ defmodule Gno.Store do
                    |> RDF.Turtle.read_file!()
                    |> RDF.Graph.query({:adapter?, RDFS.subClassOf(), Gno.Store})
                    |> Enum.map(fn %{adapter: adapter_class} -> adapter_class end)
+  @doc """
+  Returns the list of known store adapter class IRIs.
+  """
   def adapter_classes, do: @adapter_classes
+
+  @doc """
+  Returns the list of available store adapter modules.
+  """
   def adapters, do: @adapter_classes |> Enum.map(&Grax.schema/1) |> Enum.reject(&is_nil/1)
 
   schema Gno.Store do
@@ -30,6 +52,12 @@ defmodule Gno.Store do
     property userinfo: Gno.storeEndpointUserInfo(), type: :string
   end
 
+  @doc """
+  Returns the base endpoint URL for the store.
+
+  Constructed from the store's scheme, host, port, and dataset properties.
+  Returns `{:error, ...}` if the required properties are missing.
+  """
   def endpoint_base(%__MODULE__{} = store) do
     {:error,
      InvalidEndpointError.exception("endpoint_base not supported on generic #{inspect(store)}")}
@@ -56,6 +84,9 @@ defmodule Gno.Store do
 
   def endpoint_base!(store), do: bang!(&endpoint_base/1, [store])
 
+  @doc """
+  Returns the base endpoint URL with the given path appended.
+  """
   def endpoint_base_with_path(%_adapter_type{} = store, path) do
     with {:ok, endpoint_base} <- endpoint_base(store) do
       {:ok, Path.join(endpoint_base, path)}
@@ -64,6 +95,12 @@ defmodule Gno.Store do
 
   def endpoint_base_with_path!(store, path), do: bang!(&endpoint_base_with_path/2, [store, path])
 
+  @doc """
+  Returns the SPARQL query endpoint URL for the store.
+
+  Uses the explicitly configured `query_endpoint` if set, otherwise
+  delegates to the adapter's `c:Gno.Store.Adapter.determine_query_endpoint/1`.
+  """
   def query_endpoint(%adapter_type{query_endpoint: nil} = store_adapter),
     do: adapter_type.determine_query_endpoint(store_adapter)
 
@@ -72,6 +109,9 @@ defmodule Gno.Store do
 
   def query_endpoint!(store), do: bang!(&query_endpoint/1, [store])
 
+  @doc """
+  Returns the SPARQL update endpoint URL for the store.
+  """
   def update_endpoint(%adapter_type{update_endpoint: nil} = store_adapter),
     do: adapter_type.determine_update_endpoint(store_adapter)
 
@@ -80,6 +120,9 @@ defmodule Gno.Store do
 
   def update_endpoint!(store), do: bang!(&update_endpoint/1, [store])
 
+  @doc """
+  Returns the SPARQL Graph Store Protocol endpoint URL for the store.
+  """
   def graph_store_endpoint(%adapter_type{graph_store_endpoint: nil} = store_adapter),
     do: adapter_type.determine_graph_store_endpoint(store_adapter)
 

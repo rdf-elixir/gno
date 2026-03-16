@@ -1,4 +1,26 @@
 defmodule Gno.EffectiveChangeset do
+  @moduledoc """
+  A changeset containing only the minimal changes needed to achieve the desired state.
+
+  Unlike `Gno.Changeset`, an effective changeset is computed by querying the
+  current repository state. Statements that already exist are removed from
+  `:add`/`:update`/`:replace`, and statements that don't exist are removed
+  from `:remove`.
+
+  ## The `:overwrite` Field
+
+  When `:update` or `:replace` actions take effect, existing statements are
+  implicitly removed. The `:overwrite` field makes these removals explicit:
+
+  - `:update` overwrites at **property level**: existing values for the same
+    subject+predicate combinations are captured as overwrites
+  - `:replace` overwrites at **subject level**: all existing statements about
+    the same subjects are captured as overwrites
+
+  This tracking enables reliable inversion via `invert/1` - without knowing
+  what was overwritten, the original state cannot be reconstructed.
+  """
+
   alias Gno.Changeset.{Action, Validation, Helper}
   alias RDF.{Graph, Dataset}
 
@@ -95,8 +117,14 @@ defmodule Gno.EffectiveChangeset do
   def deletes(%__MODULE__{remove: nil, overwrite: overwrite}), do: overwrite
   def deletes(%__MODULE__{remove: remove, overwrite: overwrite}), do: Graph.add(remove, overwrite)
 
+  @doc """
+  Serializes the effective changeset to an `RDF.Dataset`.
+  """
   def to_rdf(%__MODULE__{} = changeset, opts \\ []), do: Helper.to_rdf(changeset, opts)
 
+  @doc """
+  Deserializes an effective changeset from an `RDF.Dataset`.
+  """
   def from_rdf(%Dataset{} = dataset, opts \\ []),
     do: Helper.from_rdf(dataset, __MODULE__, opts)
 

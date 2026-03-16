@@ -1,4 +1,15 @@
 defmodule Gno.CommitOperation.Type do
+  @moduledoc """
+  Behaviour for custom commit operation types.
+
+  A custom commit operation type can be defined by implementing this behaviour and using the `use Gno.CommitOperation.Type` macro.
+
+  This provides a macro `def_commit_operation/2` that can be used to define the
+  Grax schema of the commit operation.
+  The schema should only define properties for configuration that is loaded from
+  the RDF manifest. Runtime state belongs on the `Gno.Commit.Processor` (via
+  `assigns`, `metadata`, etc.), so that middlewares can access it.
+  """
   alias Gno.Commit.Processor
 
   @type t :: Grax.Schema.t()

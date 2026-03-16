@@ -9,10 +9,10 @@ defprotocol Gno.Changeset.Action.Graph do
   @doc """
   Converts the given data structure to an RDF graph for a specific changeset action.
 
-  The action parameter can be one of: :add, :update, :replace, :remove, :overwrite.
-  When action is nil, a default conversion is performed.
+  The action parameter can be one of: `:add`, `:update`, `:replace`, `:remove`, `:overwrite`.
+  When action is `nil`, a default conversion is performed.
 
-  Returns `nil` for empty or nil inputs, and an RDF.Graph for valid inputs.
+  Returns `nil` for empty or `nil` inputs, and an `RDF.Graph` for valid inputs.
   """
   @spec graph(t, Gno.Changeset.Action.t()) :: RDF.Graph.t() | nil
   def graph(data, action)

@@ -1,6 +1,13 @@
 defmodule Gno.Service.Setup do
   @moduledoc """
-  Extensible setup command for initializing Gno repositories in the SPARQL store of a `Gno.Service`.
+  Setup and teardown of Gno repositories in the SPARQL store of a `Gno.Service`.
+
+  The setup pipeline checks store availability, prepares the store adapter,
+  initializes repository metadata, and validates the result. 
+
+  Application-specific setup logic can be added via `Gno.Service.Setup.Extension`.
+
+  For command-line usage, see `mix gno.setup` and `mix gno.teardown`.
   """
 
   alias Gno.{Service, Store}

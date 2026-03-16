@@ -1,6 +1,37 @@
 defmodule Gno.Commit.Processor do
   @moduledoc """
-  The central component of the commit operation.
+  State machine orchestrating the execution of a commit operation.
+
+  The processor drives a `Gno.Changeset` through a multi-phase pipeline —
+  pre-commit, transaction, post-commit — with automatic rollback on failure.
+  At each state transition, the configured `Gno.CommitMiddleware` pipeline is
+  invoked, and the actual step logic is delegated to the `Gno.CommitOperation.Type`.
+
+  ## Phases
+
+  - **Pre-commit**: Initializes the changeset from input, computes the
+    `Gno.EffectiveChangeset`, and prepares metadata (e.g. the `Gno.Commit`).
+  - **Transaction**: Starts a SPARQL transaction, applies the changes, and
+    commits the transaction. Failures in this phase trigger a rollback.
+  - **Post-commit**: Runs finalization logic. Failures here do **not** roll back
+    (the transaction is already committed).
+
+  ## Struct Fields
+
+  - `service` - the `Gno.Service` this processor operates on
+  - `state` - the current `t:state/0` in the state machine
+  - `input` - the raw input passed to `execute/3`
+  - `input_options` - options passed to `execute/3`
+  - `middlewares` - the list of `Gno.CommitMiddleware` instances
+  - `changeset` - the `Gno.Changeset` created from the input
+  - `effective_changeset` - the `Gno.EffectiveChangeset` computed during preparation
+  - `sparql_update` - the `Gno.Store.SPARQL.Operation` built from the effective changeset
+  - `additional_changes` - extra changes for specific graphs, keyed by graph name
+  - `metadata` - an `RDF.Graph` accumulating commit metadata (PROV vocabulary)
+  - `assigns` - a free-form map for sharing state between middlewares
+  - `errors` - accumulated errors during processing
+
+  ## State Machine
 
   ```mermaid
   stateDiagram-v2
@@ -135,6 +166,9 @@ defmodule Gno.Commit.Processor do
 
   import Gno.Utils, only: [bang!: 2]
 
+  @doc """
+  Creates a new processor for the given `Gno.Service`.
+  """
   def new(service) do
     {:ok,
      %__MODULE__{service: service, middlewares: List.wrap(service.commit_operation.middlewares)}}
@@ -142,6 +176,12 @@ defmodule Gno.Commit.Processor do
 
   def new!(service), do: bang!(&new/1, [service])
 
+  @doc """
+  Executes the commit pipeline with the given input changes and options.
+
+  Runs through pre-commit, transaction, and post-commit phases as described
+  in the module documentation. Returns `{:ok, commit, processor}` on success.
+  """
   def execute(%__MODULE__{} = processor, input, opts \\ []) do
     processor = %{processor | input: input, input_options: opts}
 
@@ -314,13 +354,28 @@ defmodule Gno.Commit.Processor do
     end
   end
 
+  @doc """
+  Returns the `Gno.CommitOperation.Type` module for this processor.
+  """
   def operation_type(%__MODULE__{service: %{commit_operation: %operation_type{}}}),
     do: operation_type
 
+  @doc """
+  Returns the `Gno.CommitOperation` struct for this processor.
+  """
   def operation(%__MODULE__{service: %{commit_operation: operation}}), do: operation
 
+  @doc """
+  Returns the commit ID from the processor assigns.
+  """
   def commit_id(processor), do: processor.assigns[@commit_id_assign]
 
+  @doc """
+  Sets the commit ID, optionally renaming it in existing metadata.
+
+  When `update_metadata?` is `true` (default), renames any existing commit ID
+  references in the metadata graph.
+  """
   def set_commit_id(processor, commit_id, update_metadata? \\ true)
 
   def set_commit_id(processor, commit_id, false) do
@@ -336,6 +391,11 @@ defmodule Gno.Commit.Processor do
     |> set_commit_id(commit_id, false)
   end
 
+  @doc """
+  Replaces the processor's metadata graph, or applies a function to it.
+
+  Accepts either an `RDF.Graph` or a function `(RDF.Graph -> RDF.Graph | {:ok, RDF.Graph} | {:error, term})`.
+  """
   def update_metadata(%__MODULE__{} = processor, %Graph{} = metadata) do
     {:ok, %__MODULE__{processor | metadata: metadata}}
   end
@@ -351,10 +411,19 @@ defmodule Gno.Commit.Processor do
   def update_metadata!(processor, graph_or_fun),
     do: bang!(&update_metadata/2, [processor, graph_or_fun])
 
+  @doc """
+  Adds RDF statements to the processor's metadata graph.
+  """
   def add_metadata(processor, metadata) do
     update_metadata!(processor, &Graph.add(&1, metadata))
   end
 
+  @doc """
+  Registers additional changes for a specific graph to be applied during the commit.
+
+  Used by `Gno.CommitOperation.Type` implementations to add changes beyond
+  the primary effective changeset (e.g. metadata graph updates).
+  """
   def add_additional_changes(%__MODULE__{} = processor, graph_name, changes) do
     {:ok,
      %__MODULE__{
@@ -364,6 +433,7 @@ defmodule Gno.Commit.Processor do
      }}
   end
 
+  @doc false
   def add_additional_changes(additional_changes, graph_name, changes) do
     Map.update(
       additional_changes,
@@ -380,18 +450,35 @@ defmodule Gno.Commit.Processor do
     Changeset.update(existing, normalize_changes(changes))
   end
 
+  # Note: Converting an EffectiveChangeset to a Changeset drops the :overwrite field
+  # (overwrites are implicit deletes from update/replace actions). This is currently safe
+  # because no code adds changes to the same graph key that already holds an EffectiveChangeset.
+  # If that changes, overwrites must be merged into :remove before conversion.
   defp update_existing_changes(%EffectiveChangeset{} = existing, changes) do
     existing |> Changeset.new!() |> Changeset.update(normalize_changes(changes))
   end
 
+  @doc """
+  Returns the complete set of changes to apply, including additional changes.
+
+  Delegates to the `Gno.CommitOperation.Type` implementation.
+  """
   def all_changes(processor) do
     operation_type(processor).all_changes(processor)
   end
 
+  @doc """
+  Stores a key-value pair in the processor's assigns map.
+
+  Assigns provide shared state between middlewares during a commit.
+  """
   def assign(processor, key, value) do
     put_in(processor.assigns[key], value)
   end
 
+  @doc """
+  Adds an error to the processor's error list.
+  """
   def add_error(processor, error) do
     %{processor | errors: [error | processor.errors]}
   end

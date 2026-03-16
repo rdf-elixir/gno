@@ -1,50 +1,74 @@
 defmodule Gno do
   @moduledoc """
-  A unified API for managing RDF datasets as DCAT catalogs in various SPARQL triple stores.
+  A unified API for managing RDF datasets in SPARQL triple stores.
 
-  This module provides functions for executing various graph operations. By default,
-  these functions target the dataset graph. This is the standard behavior for most
-  operations, but there are limitations with certain SPARQL update operations.
+  ## What is Gno?
 
-  For SPARQL update operations (`INSERT`, `DELETE`, `UPDATE`), the graph must be
-  specified in the query itself because SPARQL does not support executing these
-  operations on a specific graph through protocol parameters.
+  Gno abstracts RDF dataset persistence across different storage backends, built on
+  [DCAT-R](https://w3id.org/dcatr) for its structural model.
 
-  For data operations (`INSERT DATA`, `DELETE DATA`) where the data is specified as a `RDF.Graph`
-  and graph store operations (LOAD, CLEAR, etc.), the `:graph` option works as expected.
+  Gno serves as a foundation for higher-level systems like Ontogen (versioning), 
+  focusing on pure data management.
 
-      # Execute a SPARQL SELECT query
+  ## Core Concepts
+
+  ### Service
+
+  A `Gno.Service` is the entry point combining a `DCATR.Repository`, a `Gno.Store`
+  backend, and a `Gno.CommitOperation` configuration. Services are typically loaded
+  from RDF manifest files via `Gno.Manifest`.
+
+  ### Changeset System
+
+  `Gno.Changeset` provides a structured representation of intended RDF graph changes
+  through four actions: add, update, replace, and remove. Before applying,
+  changesets are converted to a `Gno.EffectiveChangeset` containing only the
+  minimal changes needed.
+
+  ### Commit System
+
+  The `Gno.Commit.Processor` is a state machine managing transactional change
+  application with automatic rollback. It supports a `Gno.CommitMiddleware`
+  pipeline for extensible processing (validation, logging, metadata enrichment).
+
+  ### Store Adapters
+
+  `Gno.Store.Adapter` defines the behaviour for pluggable SPARQL backends.
+  Built-in adapters support Apache Jena Fuseki and Oxigraph.
+
+  ## Graph Operations
+
+  This module provides functions for SPARQL queries (`select/2`, `ask/2`,
+  `construct/2`, `describe/2`), updates (`insert/2`, `delete/2`, `update/2`),
+  data operations (`insert_data/2`, `delete_data/2`), graph management
+  (`create/2`, `drop/2`, `clear/2`, `load/2`, `add/3`, `copy/3`, `move/3`),
+  and changeset-based commits (`commit/2`).
+
       Gno.select("SELECT * WHERE { ?s ?p ?o }")
-
-      # Insert RDF data
       Gno.insert_data(graph)
-
+      Gno.commit(add: EX.S |> EX.p(EX.O))
 
   ## Options
 
-  The graph operation functions in this module accept the following options:
+  The graph operation functions accept the following options:
 
-  - `:service` - Use a specific service instead of the default one from the manifest. This allows
-    operations to target different repositories.
+  - `:service` - use a specific `Gno.Service` instead of the default from the manifest
+  - `:store` - use a specific `Gno.Store` directly, bypassing service-level abstractions
+    (requires concrete graph IRIs; not supported on `commit/2` and `effective_changeset/2`)
+  - `:graph` - the target graph, processed through `Gno.Service.graph_name/2` to support
+    special values like `:default` and `:repo_manifest`
 
-  - `:store` - Use a specific store directly, bypassing service-level abstractions. When using
-    this option, the `:graph` option must specify concrete graph IRIs rather than symbolic
-    names like `:primary` or `:repo_manifest`.
-    This option is not supported on `commit/2` and `effective_changeset/2`.
+  > #### SPARQL update limitation {: .warning}
+  >
+  > For SPARQL update operations (`INSERT`, `DELETE`, `UPDATE`), the graph must be
+  > specified in the query itself. The `:graph` option only works with data operations
+  > and graph store operations.
 
-  - `:graph` - The target graph for the operation, which is processed through `Gno.Service.graph_name/2`
-    to support special values like `:default` and `:repo_manifest`.
-    Defaults to `Gno.default_target_graph/0` for most operations, except for `create/2`, `drop/2`, and
-    `clear/2` which require an explicit graph argument, and for the SPARQL update operations (see above).
-
-  - Additional options are passed to the underlying `SPARQL.Client` function. See the `SPARQL.Client`
-    documentation for available options.
-
+  Additional options are passed to the underlying `SPARQL.Client` function.
 
   ## Configuration
 
-  See the `Gno.Manifest` module for details on configuring the service and its components.
-
+  See `Gno.Manifest` for details on configuring the service and its components.
   """
 
   import RDF.Namespace
@@ -54,10 +78,16 @@ defmodule Gno do
   alias Gno.Store.SPARQL.Operation
   import Gno.Utils, only: [bang!: 2]
 
+  @doc false
   def ansi_enabled? do
     Application.get_env(:gno, :ansi_enabled, true)
   end
 
+  @doc """
+  Returns the default target graph for operations.
+
+  Configurable via `config :gno, :default_target_graph`. Defaults to `:default`.
+  """
   def default_target_graph do
     Application.get_env(:gno, :default_target_graph, :default)
   end
@@ -75,27 +105,16 @@ defmodule Gno do
   defdelegate repository!(opts \\ []), to: Gno.Manifest
 
   @doc """
-  Returns the specified graph(s) from the store.
+  Returns the contents of a graph from the store as an `RDF.Graph`.
 
-  ## Arguments
-
-    - `graph_spec` - Can be:
-      - Any atom value supported by `Gno.Service.graph_name/2` (e.g., `:default`, `:primary`, `:repo_manifest`)
-      - A single graph IRI - Returns that specific graph
-      - A list of graph IRIs - Returns RDF.Dataset with those graphs (future)
-
-    Note: The available atom values depend on the Repository implementation and can be
-    extended by subclasses overriding `graph_name/2`.
+  The `graph` argument can be a graph selector atom (e.g. `:default`, `:primary`,
+  `:repo_manifest`) or a concrete graph IRI. See `Gno.Service` for the available
+  graph selectors.
 
   ## Examples
 
-      # Get repository metadata graph
       {:ok, graph} = Gno.graph(:repo_manifest)
-      
-      # Get default graph content
       {:ok, graph} = Gno.graph(:default)
-      
-      # Get specific graph by IRI
       {:ok, graph} = Gno.graph("http://example.com/my-graph")
   """
   @spec graph(atom() | RDF.IRI.coercible(), keyword()) ::
@@ -111,6 +130,13 @@ defmodule Gno do
   """
   def graph!(graph_spec, opts \\ []), do: bang!(&graph/2, [graph_spec, opts])
 
+  @doc """
+  Resolves a graph selector to a concrete graph IRI.
+
+  Delegates to `Gno.Service.graph_name/2` on the default service returned by `service/0`.
+  Supported selectors include `:default`, `:primary`, `:repo_manifest`,
+  and concrete graph IRIs and names.
+  """
   def graph_name(graph_id \\ default_target_graph(), opts \\ []) do
     Service.graph_name(service!(opts), graph_id)
   end
@@ -669,6 +695,31 @@ defmodule Gno do
   def effective_changeset!(changes, opts \\ []),
     do: bang!(&effective_changeset/2, [changes, opts])
 
+  @doc """
+  Commits a changeset to the repository.
+
+  Creates a `Gno.Changeset` from the given changes, computes the
+  `Gno.EffectiveChangeset`, and applies it transactionally through the
+  `Gno.Commit.Processor` pipeline. Returns the resulting `Gno.Commit`
+  on success.
+
+  ## Options
+
+  In addition to the general `:service` option:
+
+  - `:on_no_effective_changes` - what to do when the changeset results in no
+    effective changes, overwriting the configured value on the `Gno.CommitOperation`: 
+    `"error"` (default), `"skip"`, or `"proceed"`
+
+  ## Examples
+
+      Gno.commit(add: EX.S |> EX.p(EX.O))
+
+      Gno.commit(
+        [add: EX.S |> EX.p(EX.O)],
+        on_no_effective_changes: "skip"
+      )
+  """
   def commit(changes, opts \\ []) do
     with {:ok, service, opts} <- resolve_service(opts),
          {:ok, processor} <- Gno.Commit.Processor.new(service),
@@ -679,6 +730,11 @@ defmodule Gno do
 
   def commit!(changes, opts \\ []), do: bang!(&commit/2, [changes, opts])
 
+  @doc """
+  Sets up the repository on the configured store.
+
+  Delegates to `Gno.Service.Setup.setup/2`. See that module for available options.
+  """
   def setup(opts \\ []) do
     with {:ok, service, opts} <- resolve_service(opts) do
       Gno.Service.Setup.setup(service, opts)

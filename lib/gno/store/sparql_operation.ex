@@ -1,4 +1,25 @@
 defmodule Gno.Store.SPARQL.Operation do
+  @moduledoc """
+  Represents a SPARQL operation to be executed against a `Gno.Store`.
+
+  Wraps SPARQL queries and updates with type metadata used by `Gno.Store.Adapter`
+  implementations to dispatch to the correct endpoint and `SPARQL.Client` function.
+
+  ## Fields
+
+  - `name` — the operation name (e.g. `:select`, `:insert_data`, `:clear`)
+  - `type` — `:query` or `:update`
+  - `update_type` — for updates, further classifies the dispatch target:
+    - `:query` — SPARQL updates with WHERE clause (INSERT, DELETE, UPDATE),
+      dispatched to the update endpoint
+    - `:data` — direct data operations (INSERT DATA, DELETE DATA),
+      dispatched to the update endpoint
+    - `:graph_store` — graph management operations (LOAD, CLEAR, DROP, CREATE,
+      ADD, COPY, MOVE), dispatched to the graph store endpoint
+  - `payload` — the query string, update string, `RDF.Data` source, or `nil`
+  - `opts` — additional options passed through to `SPARQL.Client`
+  """
+
   defstruct [:name, :type, :update_type, :payload, :opts]
 
   @type query :: String.t()
