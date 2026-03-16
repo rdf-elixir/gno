@@ -3,10 +3,12 @@ defmodule Gno.MixProject do
 
   @scm_url "https://github.com/rdf-elixir/gno"
 
+  @version File.read!("VERSION") |> String.trim()
+
   def project do
     [
       app: :gno,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -65,6 +67,7 @@ defmodule Gno.MixProject do
     [
       main: "Gno",
       source_url: @scm_url,
+      source_ref: "v#{@version}",
       groups_for_modules: [
         Model: [
           Gno.Service,
