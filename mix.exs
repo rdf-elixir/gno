@@ -68,6 +68,7 @@ defmodule Gno.MixProject do
       main: "Gno",
       source_url: @scm_url,
       source_ref: "v#{@version}",
+      logo: "gno-logo.png",
       groups_for_modules: [
         Model: [
           Gno.Service,
