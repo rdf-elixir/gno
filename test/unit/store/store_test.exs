@@ -165,6 +165,20 @@ defmodule Gno.StoreTest do
               )}
   end
 
+  test "graph_semantics/1 on generic store" do
+    assert Store.graph_semantics(%Store{}) == :isolated
+  end
+
+  test "graph_semantics/1 on generic store with manifest override" do
+    assert Store.graph_semantics(%Store{default_graph_semantics_config: "union"}) == :union
+    assert Store.graph_semantics(%Store{default_graph_semantics_config: "isolated"}) == :isolated
+    assert Store.graph_semantics(%Store{default_graph_semantics_config: nil}) == :isolated
+  end
+
+  test "default_graph_iri/1 on generic store" do
+    assert Store.default_graph_iri(%Store{}) == nil
+  end
+
   test "*_endpoint/1 functions when endpoints set directly" do
     assert %Store{query_endpoint: EX.query_endpoint()} |> Store.query_endpoint() ==
              {:ok, to_string(EX.query_endpoint())}

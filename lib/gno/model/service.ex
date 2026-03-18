@@ -135,6 +135,7 @@ defmodule Gno.Service do
   @impl true
   def graph_name(service, id_or_selector, opts \\ [])
   def graph_name(_service, :all, _), do: :all
+  def graph_name(_service, :union, _), do: :union
   def graph_name(service, id_or_selector, opts), do: super(service, id_or_selector, opts)
 
   defp strict_graph_name_mode(opts) do

@@ -79,6 +79,28 @@ defmodule Gno.Store.Adapters.FusekiTest do
              {:ok, to_string(EX.graph_store_endpoint())}
   end
 
+  describe "graph semantics" do
+    test "default_graph_semantics/0" do
+      assert Fuseki.default_graph_semantics() == :isolated
+    end
+
+    test "default_graph_iri/0" do
+      assert Fuseki.default_graph_iri() == ~I<urn:x-arq:DefaultGraph>
+    end
+
+    test "graph_semantics/1" do
+      assert Fuseki.graph_semantics(%Fuseki{dataset: "test"}) == :isolated
+    end
+
+    test "graph_semantics/1 with manifest override to :union" do
+      assert Fuseki.graph_semantics(%Fuseki{
+               dataset: "test",
+               default_graph_semantics_config: "union"
+             }) ==
+               :union
+    end
+  end
+
   describe "Fuseki Admin API endpoints" do
     test "admin_base/1" do
       assert Fuseki.admin_base(%Fuseki{dataset: "test-dataset"}) ==

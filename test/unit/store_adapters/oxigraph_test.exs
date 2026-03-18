@@ -55,6 +55,20 @@ defmodule Gno.Store.Adapters.OxigraphTest do
     assert Store.dataset_endpoint_segment(%Oxigraph{}) == {:ok, ""}
   end
 
+  describe "graph semantics" do
+    test "default_graph_semantics/0" do
+      assert Oxigraph.default_graph_semantics() == :isolated
+    end
+
+    test "default_graph_iri/0" do
+      assert Oxigraph.default_graph_iri() == nil
+    end
+
+    test "graph_semantics/1" do
+      assert Oxigraph.graph_semantics(%Oxigraph{}) == :isolated
+    end
+  end
+
   test "*_endpoint/1 functions when endpoints set directly" do
     assert Store.query_endpoint(%Oxigraph{query_endpoint: EX.query_endpoint()}) ==
              {:ok, to_string(EX.query_endpoint())}

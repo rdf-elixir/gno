@@ -78,6 +78,23 @@ defmodule Gno.Store.Adapter do
   """
   @callback check_setup(t(), keyword()) :: :ok | {:error, Gno.Store.UnavailableError.t()}
 
+  @doc """
+  Returns the default graph semantics of this store adapter type.
+
+  - `:isolated` — the default graph contains only explicitly inserted triples
+  - `:union` — the default graph is the union of all graphs
+  """
+  @callback default_graph_semantics() :: :isolated | :union
+
+  @doc """
+  Returns the store-specific IRI of the default graph.
+
+  Used to restrict queries to the real default graph on stores with `:union`
+  semantics via the `default-graph-uri` SPARQL protocol parameter.
+  Returns `nil` for stores with `:isolated` semantics.
+  """
+  @callback default_graph_iri() :: RDF.IRI.t() | nil
+
   defmacro __using__(adapter_spec) do
     {dataset_endpoint_segment_template, adapter_spec} =
       Keyword.pop(adapter_spec, :dataset_endpoint_segment_template)
@@ -174,6 +191,20 @@ defmodule Gno.Store.Adapter do
       defoverridable dataset_endpoint_segment: 1
 
       @impl true
+      def default_graph_iri, do: nil
+
+      @doc """
+      Returns the graph semantics for a specific adapter instance.
+
+      Checks the `default_graph_semantics_config` manifest property first,
+      falling back to `default_graph_semantics/0`.
+      """
+      def graph_semantics(%__MODULE__{} = adapter) do
+        Gno.Store.parse_graph_semantics(adapter.default_graph_semantics_config) ||
+          default_graph_semantics()
+      end
+
+      @impl true
       def handle_sparql(
             %Operation{} = operation,
             %_adapter_type{} = adapter,
@@ -211,7 +242,9 @@ defmodule Gno.Store.Adapter do
                      check_availability: 1,
                      check_availability: 2,
                      check_setup: 1,
-                     check_setup: 2
+                     check_setup: 2,
+                     default_graph_iri: 0,
+                     graph_semantics: 1
     end
   end
 

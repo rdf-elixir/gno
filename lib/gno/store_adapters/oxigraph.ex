@@ -33,4 +33,7 @@ defmodule Gno.Store.Adapters.Oxigraph do
     query_endpoint_path: "query",
     update_endpoint_path: "update",
     graph_store_endpoint_path: "store"
+
+  @impl true
+  def default_graph_semantics, do: :isolated
 end

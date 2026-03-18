@@ -201,6 +201,32 @@ defmodule Gno.Store do
 
   def check_setup(%store_adapter{} = store, opts), do: store_adapter.check_setup(store, opts)
 
+  @impl true
+  def default_graph_semantics, do: :isolated
+
+  @impl true
+  def default_graph_iri, do: nil
+
+  def default_graph_iri(%__MODULE__{}), do: nil
+  def default_graph_iri(%adapter_type{} = _adapter), do: adapter_type.default_graph_iri()
+
+  def graph_semantics(%__MODULE__{default_graph_semantics_config: config}) do
+    parse_graph_semantics(config) || default_graph_semantics()
+  end
+
+  def graph_semantics(%adapter_type{} = adapter), do: adapter_type.graph_semantics(adapter)
+
+  @doc false
+  @spec parse_graph_semantics(String.t() | nil) :: :isolated | :union | nil
+  def parse_graph_semantics("isolated"), do: :isolated
+  def parse_graph_semantics("union"), do: :union
+  def parse_graph_semantics(nil), do: nil
+
+  def parse_graph_semantics(invalid) do
+    raise ArgumentError,
+          "invalid value for gno:storeDefaultGraphSemantics: #{inspect(invalid)}, expected \"isolated\" or \"union\""
+  end
+
   @doc false
   def do_check_availability(store, opts) do
     "ASK { ?s ?p ?o }"

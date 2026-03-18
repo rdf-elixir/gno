@@ -92,6 +92,19 @@ defmodule Gno do
     Application.get_env(:gno, :default_target_graph, :default)
   end
 
+  @doc """
+  Returns the default graph IRI for the configured store adapter.
+
+  For stores with `:union` default graph semantics, this returns the
+  store-specific IRI that identifies the real default graph. Useful for
+  interpolation in SPARQL UPDATE queries with WHERE clauses.
+
+  Returns `nil` for stores with `:isolated` semantics.
+  """
+  def default_graph_iri(opts \\ []) do
+    store!(opts) |> Store.default_graph_iri()
+  end
+
   defdelegate manifest(opts \\ []), to: Gno.Manifest
   defdelegate manifest!(opts \\ []), to: Gno.Manifest
 

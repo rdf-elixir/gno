@@ -15,7 +15,7 @@ defmodule Gno.Store.GenSPARQL do
       apply(SPARQL.Client, operation.name, [
         operation.payload,
         endpoint,
-        query_opts(opts, graph_name)
+        query_opts(opts, graph_name, adapter)
       ])
     end
   end
@@ -26,7 +26,7 @@ defmodule Gno.Store.GenSPARQL do
       apply(SPARQL.Client, op.name, [
         op.payload,
         endpoint,
-        update_opts(opts, graph_name)
+        update_opts(opts, graph_name, adapter)
       ])
     end
   end
@@ -37,7 +37,7 @@ defmodule Gno.Store.GenSPARQL do
       apply(SPARQL.Client, op.name, [
         set_graph(op.payload, graph_name),
         endpoint,
-        update_opts(opts, graph_name)
+        update_opts(opts, graph_name, adapter)
       ])
     end
   end
@@ -49,14 +49,14 @@ defmodule Gno.Store.GenSPARQL do
     end
   end
 
-  defp query_opts(opts, graph) do
+  defp query_opts(opts, graph, adapter) do
     opts
     |> general_opts()
-    |> add_graph_opt(:query, graph)
+    |> add_graph_opt(:query, graph, adapter)
     |> Keyword.put_new(:raw_mode, true)
   end
 
-  defp update_opts(opts, graph) do
+  defp update_opts(opts, graph, _adapter) do
     opts
     |> general_opts()
     |> add_graph_opt(:update, graph)
@@ -91,9 +91,44 @@ defmodule Gno.Store.GenSPARQL do
   defp add_graph_opt(opts, _, nil), do: opts
   defp add_graph_opt(opts, _, :default), do: opts
 
+  defp add_graph_opt(_opts, _, :union),
+    do: raise(ArgumentError, ":union graph selector is only supported for query operations")
+
   defp add_graph_opt(opts, type, graph) do
     {named_graph, opts} = Keyword.pop(opts, :named_graph, false)
     Keyword.put(opts, graph_opt(type, named_graph), graph)
+  end
+
+  defp add_graph_opt(opts, :query, nil, adapter), do: maybe_set_default_graph(opts, adapter)
+  defp add_graph_opt(opts, :query, :default, adapter), do: maybe_set_default_graph(opts, adapter)
+
+  defp add_graph_opt(opts, :query, :union, adapter) do
+    case Store.graph_semantics(adapter) do
+      :union ->
+        opts
+
+      :isolated ->
+        raise Gno.Store.UnsupportedOperationError.exception(
+                operation: :union_default_graph,
+                store: adapter
+              )
+    end
+  end
+
+  defp add_graph_opt(opts, type, graph, _adapter), do: add_graph_opt(opts, type, graph)
+
+  defp maybe_set_default_graph(opts, adapter) do
+    case Store.graph_semantics(adapter) do
+      :isolated ->
+        opts
+
+      :union ->
+        if iri = Store.default_graph_iri(adapter) do
+          Keyword.put(opts, :default_graph, iri)
+        else
+          opts
+        end
+    end
   end
 
   defp graph_opt(:query, false), do: :default_graph

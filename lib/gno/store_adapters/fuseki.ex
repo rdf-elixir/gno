@@ -30,6 +30,7 @@ defmodule Gno.Store.Adapters.Fuseki do
     property port: Gno.storeEndpointPort(), type: :integer, default: 3030
     property dataset: Gno.storeEndpointDataset(), type: :string, required: true
 
+    # make these properties no longer required
     property query_endpoint: Gno.storeQueryEndpoint(), type: :iri, required: false
     property update_endpoint: Gno.storeUpdateEndpoint(), type: :iri, required: false
     property graph_store_endpoint: Gno.storeGraphStoreEndpoint(), type: :iri, required: false
@@ -43,11 +44,18 @@ defmodule Gno.Store.Adapters.Fuseki do
     graph_store_endpoint_path: "data"
 
   require Logger
+  import RDF.Sigils
 
   @default_db_type (case DCATR.Manifest.env() do
                       :test -> "mem"
                       _ -> "tdb"
                     end)
+
+  @impl true
+  def default_graph_semantics, do: :isolated
+
+  @impl true
+  def default_graph_iri, do: ~I<urn:x-arq:DefaultGraph>
 
   @doc """
   Returns the Fuseki HTTP Administration API base endpoint.

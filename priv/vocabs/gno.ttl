@@ -114,6 +114,14 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:comment "The dataset name/path segment used in endpoint URLs."
     .
 
+    gno:storeDefaultGraphSemantics a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gno:Store
+        ; rdfs:range xsd:string
+        ; rdfs:label "store default graph semantics"
+        ; rdfs:comment "The default graph semantics of the store: 'isolated' (default graph contains only its own triples) or 'union' (default graph is the union of all graphs). Overrides the adapter's default when set."
+    .
+
+
 ##########################################################################
 # Commit
 ##########################################################################
