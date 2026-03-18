@@ -90,6 +90,23 @@ defmodule Gno.Service.SetupError do
   end
 end
 
+defmodule Gno.Store.UnsupportedOperationError do
+  @moduledoc """
+  Raised when a SPARQL operation is not supported by a store adapter.
+  """
+
+  defexception [:operation, :store]
+
+  @type t :: %__MODULE__{
+          operation: atom(),
+          store: Gno.Store.Adapter.t()
+        }
+
+  def message(%{operation: operation, store: store}) do
+    "Operation #{inspect(operation)} is not supported by #{Gno.Store.Adapter.type_name(store.__struct__)}"
+  end
+end
+
 defmodule Gno.Store.UnavailableError do
   @moduledoc """
   Raised when a store is unavailable for operations.

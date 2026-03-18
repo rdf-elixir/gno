@@ -6,11 +6,24 @@
 gnoa:Oxigraph a rdfs:Class
     ; rdfs:subClassOf gno:Store
     ; rdfs:label "Oxigraph store"
-    # https://crates.io/crates/oxigraph-cli
+    ; rdfs:seeAlso <https://github.com/oxigraph/oxigraph>
 .
 
 gnoa:Fuseki a rdfs:Class
     ; rdfs:subClassOf gno:Store
     ; rdfs:label "Fuseki store"
-    #
+    ; rdfs:seeAlso <https://jena.apache.org/documentation/fuseki2/>
 .
+
+gnoa:Qlever a rdfs:Class
+    ; rdfs:subClassOf gno:Store
+    ; rdfs:label "QLever store"
+    ; rdfs:seeAlso <https://github.com/ad-freiburg/qlever>
+.
+
+    gnoa:qleverAccessToken a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gnoa:Qlever
+        ; rdfs:range xsd:string
+        ; rdfs:label "QLever access token"
+        ; rdfs:comment "Access token for authenticating write operations against a QLever store."
+    .

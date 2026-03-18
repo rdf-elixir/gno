@@ -5,7 +5,6 @@ defmodule Gno.StoreTest do
 
   alias Gno.Store.InvalidEndpointError
   alias Gno.Store.SPARQL.Operation
-  alias Gno.Store.Adapters.Fuseki
 
   @configured_store_adapter configured_store_adapter()
 

@@ -93,6 +93,7 @@ defmodule Gno.MixProject do
         "Store Adapters": [
           Gno.Store.Adapters.Fuseki,
           Gno.Store.Adapters.Oxigraph,
+          Gno.Store.Adapters.Qlever,
           Gno.Store.Adapters.GraphDB
         ],
         Manifest: [

@@ -2,6 +2,10 @@ defmodule GnoTest do
   use Gno.StoreCase
   doctest Gno
 
+  @configured_store_adapter configured_store_adapter()
+
+  @skip_on_qlever if @configured_store_adapter == Qlever, do: :skip, else: :skip_on_qlever
+
   @tag :internet
   test "operation helpers" do
     assert Gno.ask("ASK { ?s ?p ?o }") == {:ok, false}
@@ -49,11 +53,18 @@ defmodule GnoTest do
 
     assert Gno.ask!("ASK { ?s <#{EX.p3()}> ?o }")
 
-    assert Gno.clear(:service, silent: true) == :ok
+    if @configured_store_adapter == Qlever do
+      assert Gno.drop(:all) == :ok
+    else
+      assert Gno.clear(:service, silent: true) == :ok
+    end
+
     refute Gno.ask!("ASK { ?s ?p ?o }")
 
-    assert Gno.load("https://rtc-org.github.io/spec/vocab/rtc.ttl") == :ok
-    assert Gno.ask!("ASK { <https://w3id.org/rtc#Compound> ?p ?o }")
+    unless @configured_store_adapter == Qlever do
+      assert Gno.load("https://rtc-org.github.io/spec/vocab/rtc.ttl") == :ok
+      assert Gno.ask!("ASK { <https://w3id.org/rtc#Compound> ?p ?o }")
+    end
 
     assert Gno.drop(:all) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }")
@@ -93,9 +104,12 @@ defmodule GnoTest do
     assert Gno.drop(:all) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }")
 
-    assert Gno.create(Gno.graph_name(:repo_manifest)) == :ok
+    unless @configured_store_adapter == Qlever do
+      assert Gno.create(Gno.graph_name(:repo_manifest)) == :ok
+    end
   end
 
+  @tag @skip_on_qlever
   @tag :internet
   test "operation helpers with named graphs" do
     graph1 = "http://example.com/graph1"
@@ -249,6 +263,7 @@ defmodule GnoTest do
                {:ok, true}
     end
 
+    @tag @skip_on_qlever
     test "inter-graph operations with :service option" do
       service = Gno.service!()
 
@@ -283,8 +298,9 @@ defmodule GnoTest do
              )
     end
 
+    @tag @skip_on_qlever
     test "inter-graph operations with alternative :service option using different repository" do
-      # This test verifies that inter-graph operations use the repository from the 
+      # This test verifies that inter-graph operations use the repository from the
       # provided :service option for graph name resolution, not the manifest's repository
 
       # Get the default service and repository
@@ -328,6 +344,7 @@ defmodule GnoTest do
              ) == {:ok, true}
     end
 
+    @tag @skip_on_qlever
     test "inter-graph operations with :store option require concrete graph names" do
       store = Gno.store!()
 
@@ -344,6 +361,7 @@ defmodule GnoTest do
                {:ok, true}
     end
 
+    @tag @skip_on_qlever
     test "create/drop/clear with :service as graph value" do
       test_data = RDF.graph([{EX.s1(), EX.p1(), "Service Graph Test"}])
 
@@ -369,6 +387,51 @@ defmodule GnoTest do
 
       assert Gno.ask("ASK { ?s ?p ?o }", graph: :primary) == {:ok, false}
       assert Gno.ask("ASK { ?s ?p ?o }", graph: :repo_manifest) == {:ok, false}
+    end
+
+    if @configured_store_adapter == Qlever do
+      test "unsupported operations return UnsupportedOperationError" do
+        for {op, args} <- [
+              clear: [:all],
+              create: [Gno.graph_name(:repo_manifest)],
+              load: ["https://example.com/data.ttl"],
+              add: [:primary, :repo_manifest],
+              copy: [:primary, :repo_manifest],
+              move: [:primary, :repo_manifest]
+            ] do
+          assert {:error, %Gno.Store.UnsupportedOperationError{operation: ^op}} =
+                   apply(Gno, op, args)
+        end
+      end
+    end
+  end
+
+  describe ":union graph selector" do
+    if @configured_store_adapter.default_graph_semantics() == :union do
+      test "querying with graph: :union returns union of all graphs on union store" do
+        graph1 = "http://example.com/graph1"
+
+        assert Gno.insert_data(RDF.graph([{EX.s1(), EX.p1(), "default"}])) == :ok
+        assert Gno.insert_data(RDF.graph([{EX.s2(), EX.p2(), "named"}]), graph: graph1) == :ok
+
+        # :default should only return default graph data (normalized)
+        assert {:ok, default_result} =
+                 Gno.select("SELECT * WHERE { ?s ?p ?o } ORDER BY ?s", graph: :default)
+
+        assert length(default_result.results) == 1
+
+        # :union should return all data
+        assert {:ok, union_result} =
+                 Gno.select("SELECT * WHERE { ?s ?p ?o } ORDER BY ?s", graph: :union)
+
+        assert length(union_result.results) == 2
+      end
+    else
+      test "querying with graph: :union raises on isolated store" do
+        assert_raise Gno.Store.UnsupportedOperationError, fn ->
+          Gno.select("SELECT * WHERE { ?s ?p ?o }", graph: :union)
+        end
+      end
     end
   end
 

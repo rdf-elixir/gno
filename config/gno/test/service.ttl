@@ -8,6 +8,7 @@
     ; dcatr:serviceRepository <Repository>
     ; gno:serviceStore <Fuseki>
 #    ; gno:serviceStore <Oxigraph>
+#    ; gno:serviceStore <Qlever>
 #    ; gno:serviceStore <GenericStore>
     ; dcatr:usePrimaryAsDefault false
     ; dcterms:title "test service"
@@ -38,4 +39,9 @@
     ; gno:storeEndpointScheme "http"
     ; gno:storeEndpointHost "localhost"
     ; gno:storeEndpointPort 7879
+.
+
+<Qlever> a gnoa:Qlever
+    ; gno:storeEndpointPort 7002
+    ; gnoa:qleverAccessToken "gno-test-token"
 .

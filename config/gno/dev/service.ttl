@@ -7,6 +7,7 @@
     ; dcatr:serviceRepository <Repository>
     ; gno:serviceStore <Fuseki>
 #    ; gno:serviceStore <Oxigraph>
+#    ; gno:serviceStore <Qlever>
 #    ; gno:serviceStore <GenericStore>
     ; dcterms:title "dev service"
     ; dcterms:creator <User>
@@ -37,4 +38,9 @@
     ; gno:storeEndpointScheme "http"
     ; gno:storeEndpointHost "localhost"
     ; gno:storeEndpointPort 7878
+.
+
+<Qlever> a gnoa:Qlever
+    ; gno:storeEndpointPort 7001
+    ; gnoa:qleverAccessToken "gno-dev-token"
 .

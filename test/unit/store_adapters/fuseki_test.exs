@@ -3,7 +3,6 @@ defmodule Gno.Store.Adapters.FusekiTest do
 
   doctest Gno.Store.Adapters.Fuseki
 
-  alias Gno.Store.Adapters.Fuseki
   alias Gno.Store
 
   @configured_store_adapter configured_store_adapter()

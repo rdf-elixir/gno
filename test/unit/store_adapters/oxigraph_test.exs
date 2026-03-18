@@ -3,7 +3,6 @@ defmodule Gno.Store.Adapters.OxigraphTest do
 
   doctest Gno.Store.Adapters.Oxigraph
 
-  alias Gno.Store.Adapters.Oxigraph
   alias Gno.Store
 
   test "endpoint_base/1" do

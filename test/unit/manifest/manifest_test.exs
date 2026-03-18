@@ -5,7 +5,6 @@ defmodule Gno.ManifestTest do
 
   alias Gno.Manifest
   alias Gno.{Service, Store}
-  alias Gno.Store.Adapters.{Oxigraph, Fuseki, GraphDB}
   alias DCATR.{Repository, Dataset}
 
   @configured_store_adapter configured_store_adapter()
@@ -59,6 +58,11 @@ defmodule Gno.ManifestTest do
       Oxigraph ->
         test "store/0 with Oxigraph adapter" do
           assert {:ok, %Oxigraph{port: 7879}} = Manifest.store()
+        end
+
+      Qlever ->
+        test "store/0 with Qlever adapter" do
+          assert {:ok, %Qlever{port: 7002}} = Manifest.store()
         end
 
       GraphDB ->

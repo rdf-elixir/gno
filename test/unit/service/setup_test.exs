@@ -5,7 +5,6 @@ defmodule Gno.Service.SetupTest do
 
   alias Gno.Service
   alias Gno.Service.{Setup, SetupError}
-  alias Gno.Store.Adapters.Fuseki
 
   import Gno.TestFactories
 

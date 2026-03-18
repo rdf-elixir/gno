@@ -1,0 +1,1 @@
+qlever-dev: sh -c "cd db/qlever/dev && qlever start --run-in-foreground --persist-updates"

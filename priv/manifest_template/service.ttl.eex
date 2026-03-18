@@ -16,6 +16,7 @@
 		<%= unless @adapter == nil, do: "#" %>; gno:serviceStore <Store>
 		<%= unless @adapter == Gno.Store.Adapters.Oxigraph, do: "#" %>; gno:serviceStore <Oxigraph>
 		<%= unless @adapter == Gno.Store.Adapters.Fuseki, do: "#" %>; gno:serviceStore <Fuseki>
+		<%= unless @adapter == Gno.Store.Adapters.Qlever, do: "#" %>; gno:serviceStore <Qlever>
 
     #################################################
     # metadata

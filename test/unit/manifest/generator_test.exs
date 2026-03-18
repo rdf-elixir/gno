@@ -5,7 +5,6 @@ defmodule Gno.Manifest.GeneratorTest do
 
   alias Gno.Manifest
   alias DCATR.Manifest.GeneratorError
-  alias Gno.Store.Adapters.{Fuseki, Oxigraph}
 
   @moduletag :tmp_dir
 
@@ -16,7 +15,7 @@ defmodule Gno.Manifest.GeneratorTest do
     {:ok, project_dir: project_dir, manifest_dir: manifest_dir}
   end
 
-  @all_adapters [Store, Fuseki, Oxigraph]
+  @all_adapters [Store, Fuseki, Oxigraph, Qlever]
 
   describe "Gno.Manifest.generate/3" do
     test "initializes service config without adapter", %{
@@ -59,6 +58,18 @@ defmodule Gno.Manifest.GeneratorTest do
         Oxigraph,
         @all_adapters -- [Oxigraph]
       )
+
+      File.rm_rf!(Path.join(project_dir, manifest_dir))
+
+      assert :ok = Manifest.generate(project_dir, adapter: Qlever)
+
+      assert_files_generated(Path.join(project_dir, manifest_dir))
+
+      assert_selected_adapter(
+        Path.join([project_dir, manifest_dir, "service.ttl"]),
+        Qlever,
+        @all_adapters -- [Qlever]
+      )
     end
 
     test "with unknown adapter", %{project_dir: project_dir} do
@@ -74,6 +85,7 @@ defmodule Gno.Manifest.GeneratorTest do
     assert File.exists?(Path.join(manifest_dir, "store.ttl"))
     assert File.exists?(Path.join(manifest_dir, "fuseki.ttl"))
     assert File.exists?(Path.join(manifest_dir, "oxigraph.ttl"))
+    assert File.exists?(Path.join(manifest_dir, "qlever.ttl"))
   end
 
   defp assert_selected_adapter(file, selected_adapter, disabled_adapters) do
