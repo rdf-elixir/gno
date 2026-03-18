@@ -52,7 +52,7 @@ defmodule GnoTest do
     assert Gno.clear(:service, silent: true) == :ok
     refute Gno.ask!("ASK { ?s ?p ?o }")
 
-    assert Gno.load("https://w3id.org/rtc/rtc.ttl") == :ok
+    assert Gno.load("https://rtc-org.github.io/spec/vocab/rtc.ttl") == :ok
     assert Gno.ask!("ASK { <https://w3id.org/rtc#Compound> ?p ?o }")
 
     assert Gno.drop(:all) == :ok
@@ -161,7 +161,7 @@ defmodule GnoTest do
     refute Gno.ask!("ASK { ?s ?p ?o }", graph1_opts)
     assert Gno.ask!("ASK { ?s ?p ?o }", graph2_opts)
 
-    assert Gno.load("https://w3id.org/rtc/rtc.ttl", graph1_opts) == :ok
+    assert Gno.load("https://rtc-org.github.io/spec/vocab/rtc.ttl", graph1_opts) == :ok
     assert Gno.ask!("ASK { <https://w3id.org/rtc#Compound> ?p ?o }", graph1_opts)
 
     assert Gno.drop(RDF.iri(graph2)) == :ok
