@@ -1,9 +1,0 @@
-@base <http://example.com/> .
-@prefix gno: <https://w3id.org/gno#> .
-@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
-
-<Oxigraph> a gnoa:Oxigraph
-    ; gno:storeEndpointScheme "http"
-    ; gno:storeEndpointHost "localhost"
-    ; gno:storeEndpointPort 7879
-.

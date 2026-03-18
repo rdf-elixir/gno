@@ -14,9 +14,15 @@
 .
 
 <GenericStore> a gno:Store
-    ; gno:storeQueryEndpoint <http://localhost:7878/query>
-    ; gno:storeUpdateEndpoint <http://localhost:7878/update>
-    ; gno:storeGraphStoreEndpoint <http://localhost:7878/store>
+    # Fuseki
+    ; gno:storeQueryEndpoint <http://localhost:3030/gno-dev-dataset/query>
+    ; gno:storeUpdateEndpoint <http://localhost:3030/gno-dev-dataset/update>
+    ; gno:storeGraphStoreEndpoint <http://localhost:3030/gno-dev-dataset/data>
+
+    # Oxigraph
+#    ; gno:storeQueryEndpoint <http://localhost:7878/query>
+#    ; gno:storeUpdateEndpoint <http://localhost:7878/update>
+#    ; gno:storeGraphStoreEndpoint <http://localhost:7878/store>
 .
 
 <Fuseki> a gnoa:Fuseki

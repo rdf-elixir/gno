@@ -19,9 +19,9 @@
 
 <GenericStore> a gno:Store
     # Fuseki
-    ; gno:storeQueryEndpoint <http://localhost:3030/ontogen-test-dataset/query>
-    ; gno:storeUpdateEndpoint <http://localhost:3030/ontogen-test-dataset/update>
-    ; gno:storeGraphStoreEndpoint <http://localhost:3030/ontogen-test-dataset/data>
+    ; gno:storeQueryEndpoint <http://localhost:3030/gno-test-dataset/query>
+    ; gno:storeUpdateEndpoint <http://localhost:3030/gno-test-dataset/update>
+    ; gno:storeGraphStoreEndpoint <http://localhost:3030/gno-test-dataset/data>
 
     # Oxigraph
 #    ; gno:storeQueryEndpoint <http://localhost:7879/query>

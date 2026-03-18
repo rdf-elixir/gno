@@ -1,9 +1,0 @@
-@prefix gno: <https://w3id.org/gno#> .
-@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
-
-<Oxigraph> a gnoa:Oxigraph
-    # all of these can be omitted since predefined defaults of the adapter
-    ; gno:storeEndpointScheme "http"
-    ; gno:storeEndpointHost "localhost"
-    ; gno:storeEndpointPort 7878
-.

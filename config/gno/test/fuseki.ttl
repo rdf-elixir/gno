@@ -1,8 +1,0 @@
-@base <http://example.com/> .
-@prefix gno: <https://w3id.org/gno#> .
-@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
-
-<Fuseki> a gnoa:Fuseki
-    ; gno:storeEndpointDataset "gno-test-dataset"
-    ; gno:storeEndpointPort 3030
-.

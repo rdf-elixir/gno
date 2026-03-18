@@ -1,9 +1,0 @@
-@prefix gno: <https://w3id.org/gno#> .
-@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
-
-<Fuseki> a gnoa:Fuseki
-    ; gno:storeEndpointScheme "http"
-    ; gno:storeEndpointHost "localhost"
-    ; gno:storeEndpointPort 3030
-    ; gno:storeEndpointDataset "gno-dev-dataset"
-.
