@@ -60,7 +60,7 @@ defmodule Gno.MixProject do
       licenses: ["MIT"],
       links: %{
         "GitHub" => @scm_url,
-        "User Guide" => "https://rdf-elixir.dev/gno/",
+        "User Guide" => "https://rdf-elixir.dev/gno-guide/",
         "Changelog" => @scm_url <> "/blob/main/CHANGELOG.md"
       },
       files: ~w[lib priv mix.exs .formatter.exs VERSION *.md]

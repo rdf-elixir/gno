@@ -33,7 +33,7 @@ Gno is an Elixir library that abstracts RDF dataset persistence across different
 
 ### Installation
 
-For complete setup instructions including HTTP adapter configuration, store backend setup, and manifest configuration, see the [Installation guide](https://rdf-elixir.dev/gno/installation).
+For complete setup instructions including HTTP adapter configuration, store backend setup, and manifest configuration, see the [Installation guide](https://rdf-elixir.dev/gno-guide/installation).
 
 ### Quick Example
 
@@ -54,7 +54,7 @@ For complete setup instructions including HTTP adapter configuration, store back
 
 ### Further Reading
 
-**For a comprehensive guide** covering installation, configuration, querying, and data management, see the [User Guide](https://rdf-elixir.dev/gno/).
+**For a comprehensive guide** covering installation, configuration, querying, and data management, see the [User Guide](https://rdf-elixir.dev/gno-guide/).
 
 **For detailed API documentation**, see the [HexDocs documentation](https://hexdocs.pm/gno).
 
