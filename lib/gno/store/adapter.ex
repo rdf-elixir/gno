@@ -145,6 +145,7 @@ defmodule Gno.Store.Adapter do
                                                         @dataset_endpoint_segment_template
                                                       )
 
+        @dialyzer {:no_opaque, dataset_endpoint_segment: 1}
         def dataset_endpoint_segment(%__MODULE__{} = adapter) do
           adapter_vars =
             adapter

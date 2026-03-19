@@ -75,6 +75,7 @@ defmodule Gno.Changeset.Helper do
     Enum.any?(Action.fields(), &(changeset |> Map.get(&1) |> graph_describes?(subject)))
   end
 
+  @dialyzer {:no_opaque, subjects: 1}
   def subjects(changeset) do
     Enum.reduce(
       Action.fields(),
