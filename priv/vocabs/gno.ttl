@@ -45,6 +45,7 @@ gno:Manifest a rdfs:Class, owl:Class
         ; rdfs:subClassOf dcatr:Manifest
         ; rdfs:label "Manifest"
         ; rdfs:comment "A manifest document that describes a Gno service configuration, including repository and store settings."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
 
 
@@ -157,6 +158,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:string
         ; rdfs:label "store default graph semantics"
         ; rdfs:comment "The default graph semantics of the store: 'isolated' (default graph contains only its own triples) or 'union' (default graph is the union of all graphs). Overrides the adapter's default when set."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
 
