@@ -1,0 +1,187 @@
+_:genid1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+_:genid1 <http://xmlns.com/foaf/0.1/name> "Marcel Otto" .
+_:genid1 <http://xmlns.com/foaf/0.1/homepage> <http://marcelotto.net> .
+<https://w3id.org/gno#> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/title> "Gno Vocabulary" .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/description> "An RDF vocabulary for managing RDF data in SPARQL triple stores. Extends DCAT-R with classes and properties for services, stores, changesets, and commits." .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/creator> _:genid1 .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/created> "2025-04-22"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/modified> "2026-03-19"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/issued> "2026-03-19"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://w3id.org/gno#> <http://purl.org/dc/terms/license> <https://creativecommons.org/licenses/by/4.0/> .
+<https://w3id.org/gno#> <http://www.w3.org/2002/07/owl#versionInfo> "0.1.0" .
+<https://w3id.org/gno#> <http://purl.org/vocab/vann/preferredNamespacePrefix> "gno" .
+<https://w3id.org/gno#> <http://purl.org/vocab/vann/preferredNamespaceUri> "https://w3id.org/gno#" .
+<https://w3id.org/gno#> <https://schema.org/codeRepository> <https://github.com/rdf-elixir/gno> .
+<https://w3id.org/gno#Manifest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#Manifest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#Manifest> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/dcatr#Manifest> .
+<https://w3id.org/gno#Manifest> <http://www.w3.org/2000/01/rdf-schema#label> "Manifest" .
+<https://w3id.org/gno#Manifest> <http://www.w3.org/2000/01/rdf-schema#comment> "A manifest document that describes a Gno service configuration, including repository and store settings." .
+<https://w3id.org/gno#Manifest> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#Service> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#Service> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#Service> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/dcatr#Service> .
+<https://w3id.org/gno#Service> <http://www.w3.org/2002/07/owl#disjointWith> <https://w3id.org/gno#Repository> .
+<https://w3id.org/gno#Service> <http://www.w3.org/2002/07/owl#disjointWith> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#Service> <http://www.w3.org/2002/07/owl#disjointWith> <https://w3id.org/gno#Dataset> .
+<https://w3id.org/gno#Service> <http://www.w3.org/2000/01/rdf-schema#label> "Service" .
+<https://w3id.org/gno#Service> <http://www.w3.org/2000/01/rdf-schema#comment> "A gno:Service is a composition of a gno:Repository in a specific gno:Store." .
+<https://w3id.org/gno#Service> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Service> .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/2000/01/rdf-schema#range> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/2000/01/rdf-schema#label> "service store" .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/2000/01/rdf-schema#comment> "Links a service to its store configuration." .
+<https://w3id.org/gno#serviceStore> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Service> .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/2000/01/rdf-schema#range> <https://w3id.org/gno#CommitOperation> .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/2000/01/rdf-schema#label> "service commit operation" .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/2000/01/rdf-schema#comment> "Links a service to its commit operation configuration." .
+<https://w3id.org/gno#serviceCommitOperation> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#Store> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#Store> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#Store> <http://www.w3.org/2002/07/owl#disjointWith> <https://w3id.org/gno#Service> .
+<https://w3id.org/gno#Store> <http://www.w3.org/2002/07/owl#disjointWith> <https://w3id.org/gno#Repository> .
+<https://w3id.org/gno#Store> <http://www.w3.org/2002/07/owl#disjointWith> <https://w3id.org/gno#Dataset> .
+<https://w3id.org/gno#Store> <http://www.w3.org/2000/01/rdf-schema#label> "Store" .
+<https://w3id.org/gno#Store> <http://www.w3.org/2000/01/rdf-schema#comment> "Base class for triple stores that can host a Gno repository." .
+<https://w3id.org/gno#Store> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/2000/01/rdf-schema#label> "store query endpoint" .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/2000/01/rdf-schema#comment> "The SPARQL query endpoint URL of the store." .
+<https://w3id.org/gno#storeQueryEndpoint> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/2000/01/rdf-schema#label> "store update endpoint" .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/2000/01/rdf-schema#comment> "The SPARQL update endpoint URL of the store." .
+<https://w3id.org/gno#storeUpdateEndpoint> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/2000/01/rdf-schema#label> "store graph store endpoint" .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/2000/01/rdf-schema#comment> "The SPARQL Graph Store Protocol endpoint URL of the store." .
+<https://w3id.org/gno#storeGraphStoreEndpoint> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/2000/01/rdf-schema#label> "store endpoint scheme" .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/2000/01/rdf-schema#comment> "The scheme for the store's endpoints." .
+<https://w3id.org/gno#storeEndpointScheme> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/2000/01/rdf-schema#label> "store endpoint host" .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/2000/01/rdf-schema#comment> "The host name for the store's endpoints." .
+<https://w3id.org/gno#storeEndpointHost> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#positiveInteger> .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/2000/01/rdf-schema#label> "store endpoint port" .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/2000/01/rdf-schema#comment> "The port number for the store's endpoints." .
+<https://w3id.org/gno#storeEndpointPort> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/2000/01/rdf-schema#label> "store endpoint user info" .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/2000/01/rdf-schema#comment> "The user info segment used in endpoint URLs." .
+<https://w3id.org/gno#storeEndpointUserInfo> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/2000/01/rdf-schema#label> "store endpoint dataset" .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/2000/01/rdf-schema#comment> "The dataset name/path segment used in endpoint URLs." .
+<https://w3id.org/gno#storeEndpointDataset> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/2000/01/rdf-schema#label> "store default graph semantics" .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/2000/01/rdf-schema#comment> "The default graph semantics of the store: 'isolated' (default graph contains only its own triples) or 'union' (default graph is the union of all graphs). Overrides the adapter's default when set." .
+<https://w3id.org/gno#storeDefaultGraphSemantics> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#Commit> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#Commit> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#Commit> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Activity> .
+<https://w3id.org/gno#Commit> <http://www.w3.org/2000/01/rdf-schema#label> "Commit" .
+<https://w3id.org/gno#Commit> <http://www.w3.org/2000/01/rdf-schema#comment> "Represents set of changes made to a repository. A commit encapsulates the effective changes resulting from applying a changeset to the current state of the repository." .
+<https://w3id.org/gno#Commit> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#CommitOperation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#CommitOperation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#CommitOperation> <http://www.w3.org/2000/01/rdf-schema#label> "CommitOperation" .
+<https://w3id.org/gno#CommitOperation> <http://www.w3.org/2000/01/rdf-schema#comment> "Represents the configuration of a commit operation of a service." .
+<https://w3id.org/gno#CommitOperation> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#commitMiddleware> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#commitMiddleware> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#CommitOperation> .
+<https://w3id.org/gno#commitMiddleware> <http://www.w3.org/2000/01/rdf-schema#range> <https://w3id.org/gno#CommitMiddleware> .
+<https://w3id.org/gno#commitMiddleware> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#commitNoEffectiveChangesetHandling> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#commitNoEffectiveChangesetHandling> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#CommitOperation> .
+<https://w3id.org/gno#commitNoEffectiveChangesetHandling> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#commitNoEffectiveChangesetHandling> <http://www.w3.org/2000/01/rdf-schema#label> "commit no effective changeset handling" .
+<https://w3id.org/gno#commitNoEffectiveChangesetHandling> <http://www.w3.org/2000/01/rdf-schema#comment> "Defines how the commit operation should handle the case that no effective changes result from the changeset. The value MUST be one of the following: 'skip', 'proceed' or 'error'." .
+<https://w3id.org/gno#commitNoEffectiveChangesetHandling> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#CommitMiddleware> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#CommitMiddleware> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#CommitMiddleware> <http://www.w3.org/2000/01/rdf-schema#label> "CommitMiddleware" .
+<https://w3id.org/gno#CommitMiddleware> <http://www.w3.org/2000/01/rdf-schema#comment> "Represents a middleware component of a commit operation." .
+<https://w3id.org/gno#CommitMiddleware> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#CommitLogger> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno#CommitLogger> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno#CommitLogger> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/gno#CommitMiddleware> .
+<https://w3id.org/gno#CommitLogger> <http://www.w3.org/2000/01/rdf-schema#label> "LoggingMiddleware" .
+<https://w3id.org/gno#CommitLogger> <http://www.w3.org/2000/01/rdf-schema#comment> "Middleware for logging commit operations." .
+<https://w3id.org/gno#CommitLogger> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#commitLogLevel> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#commitLogLevel> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#CommitLogger> .
+<https://w3id.org/gno#commitLogLevel> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#commitLogLevel> <http://www.w3.org/2000/01/rdf-schema#label> "log level" .
+<https://w3id.org/gno#commitLogLevel> <http://www.w3.org/2000/01/rdf-schema#comment> "The log level for the logging middleware. The value MUST be one of the log levels defined in Erlang's Logger module." .
+<https://w3id.org/gno#commitLogLevel> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#commitLogStates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#commitLogStates> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#CommitLogger> .
+<https://w3id.org/gno#commitLogStates> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno#commitLogStates> <http://www.w3.org/2000/01/rdf-schema#label> "log states" .
+<https://w3id.org/gno#commitLogStates> <http://www.w3.org/2000/01/rdf-schema#comment> "The list of states for which log entries should be generated." .
+<https://w3id.org/gno#commitLogStates> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#commitLogChanges> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#commitLogChanges> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#CommitLogger> .
+<https://w3id.org/gno#commitLogChanges> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#boolean> .
+<https://w3id.org/gno#commitLogChanges> <http://www.w3.org/2000/01/rdf-schema#label> "log changes" .
+<https://w3id.org/gno#commitLogChanges> <http://www.w3.org/2000/01/rdf-schema#comment> "Whether to log the changeset details." .
+<https://w3id.org/gno#commitLogChanges> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#commitLogMetadata> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno#commitLogMetadata> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno#CommitLogger> .
+<https://w3id.org/gno#commitLogMetadata> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#boolean> .
+<https://w3id.org/gno#commitLogMetadata> <http://www.w3.org/2000/01/rdf-schema#label> "log metadata" .
+<https://w3id.org/gno#commitLogMetadata> <http://www.w3.org/2000/01/rdf-schema#comment> "Whether to log commit metadata." .
+<https://w3id.org/gno#commitLogMetadata> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno#> .
+<https://w3id.org/gno#Addition> <http://www.w3.org/2000/01/rdf-schema#comment> "Graph name for additions in a RDF encoded changeset" .
+<https://w3id.org/gno#Removal> <http://www.w3.org/2000/01/rdf-schema#comment> "Graph name for removals in a RDF encoded changeset" .
+<https://w3id.org/gno#Update> <http://www.w3.org/2000/01/rdf-schema#comment> "Graph name for updates in a RDF encoded changeset" .
+<https://w3id.org/gno#Replacement> <http://www.w3.org/2000/01/rdf-schema#comment> "Graph name for replacements in a RDF encoded changeset" .
+<https://w3id.org/gno#Overwrite> <http://www.w3.org/2000/01/rdf-schema#comment> "Graph name for overwrites in a RDF encoded changeset" .
