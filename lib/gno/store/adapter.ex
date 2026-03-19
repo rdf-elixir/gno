@@ -23,6 +23,7 @@ defmodule Gno.Store.Adapter do
   - `Gno.Store.Adapters.Fuseki`
   - `Gno.Store.Adapters.Oxigraph`
   - `Gno.Store.Adapters.Qlever`
+  - `Gno.Store.Adapters.GraphDB`
 
   For SPARQL 1.1-compliant stores without a dedicated adapter, `Gno.Store`
   can be used directly as a generic adapter.

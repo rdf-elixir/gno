@@ -1,0 +1,9 @@
+@prefix gno: <https://w3id.org/gno#> .
+@prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+
+<GraphDB> a gnoa:GraphDB
+    ; gno:storeEndpointScheme "http"
+    ; gno:storeEndpointHost "localhost"
+    ; gno:storeEndpointPort 7200
+    ; gno:storeEndpointDataset "name-of-the-repository"
+.

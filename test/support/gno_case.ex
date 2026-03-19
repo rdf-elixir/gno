@@ -16,7 +16,7 @@ defmodule GnoCase do
 
       alias RDF.{IRI, BlankNode, Literal, Graph}
       alias Gno.{Manifest, Service, Store, Repository, Dataset, Changeset}
-      alias Gno.Store.Adapters.{Fuseki, Oxigraph, Qlever}
+      alias Gno.Store.Adapters.{Fuseki, Oxigraph, Qlever, GraphDB}
       alias Gno.NS.GnoA
       alias Gno.TestData
       alias Gno.TestNamespaces.EX

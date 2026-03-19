@@ -8,6 +8,7 @@
     ; gno:serviceStore <Fuseki>
 #    ; gno:serviceStore <Oxigraph>
 #    ; gno:serviceStore <Qlever>
+#    ; gno:serviceStore <GraphDB>
 #    ; gno:serviceStore <GenericStore>
     ; dcterms:title "dev service"
     ; dcterms:creator <User>
@@ -43,4 +44,9 @@
 <Qlever> a gnoa:Qlever
     ; gno:storeEndpointPort 7001
     ; gnoa:qleverAccessToken "gno-dev-token"
+.
+
+<GraphDB> a gnoa:GraphDB
+    ; gno:storeEndpointDataset "gno-dev-repository"
+    ; gno:storeEndpointPort 7200
 .

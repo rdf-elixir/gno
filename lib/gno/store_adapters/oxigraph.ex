@@ -22,6 +22,7 @@ defmodule Gno.Store.Adapters.Oxigraph do
     # overrides the port default value
     property port: Gno.storeEndpointPort(), type: :integer, default: 7878
 
+    # make these properties no longer required
     property query_endpoint: Gno.storeQueryEndpoint(), type: :iri, required: false
     property update_endpoint: Gno.storeUpdateEndpoint(), type: :iri, required: false
     property graph_store_endpoint: Gno.storeGraphStoreEndpoint(), type: :iri, required: false

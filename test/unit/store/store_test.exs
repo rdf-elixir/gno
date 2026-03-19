@@ -201,6 +201,7 @@ defmodule Gno.StoreTest do
       expected_reason =
         case @configured_store_adapter do
           Fuseki -> :server_unreachable
+          GraphDB -> :server_unreachable
           _ -> :query_failed
         end
 
@@ -221,6 +222,7 @@ defmodule Gno.StoreTest do
       expected_reason =
         case @configured_store_adapter do
           Fuseki -> :server_unreachable
+          GraphDB -> :server_unreachable
           _ -> :query_failed
         end
 
@@ -228,7 +230,7 @@ defmodule Gno.StoreTest do
                Store.check_setup(store, [])
     end
 
-    if @configured_store_adapter in [Fuseki] do
+    if @configured_store_adapter in [Fuseki, GraphDB] do
       test "returns error when store is not reachable with check_availability: false" do
         store = %{Manifest.store!() | host: "nonexistentlocalhost", port: 99999}
 

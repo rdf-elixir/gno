@@ -27,3 +27,9 @@ gnoa:Qlever a rdfs:Class
         ; rdfs:label "QLever access token"
         ; rdfs:comment "Access token for authenticating write operations against a QLever store."
     .
+
+gnoa:GraphDB a rdfs:Class
+    ; rdfs:subClassOf gno:Store
+    ; rdfs:label "GraphDB store"
+    ; rdfs:seeAlso <https://graphdb.ontotext.com/>
+.
