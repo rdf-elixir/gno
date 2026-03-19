@@ -34,7 +34,16 @@ defmodule Gno do
   ### Store Adapters
 
   `Gno.Store.Adapter` defines the behaviour for pluggable SPARQL backends.
-  Built-in adapters support Apache Jena Fuseki and Oxigraph.
+
+  Built-in adapters:
+
+  - `Gno.Store.Adapters.Fuseki`
+  - `Gno.Store.Adapters.Oxigraph`
+  - `Gno.Store.Adapters.Qlever`
+  - `Gno.Store.Adapters.GraphDB`
+
+  For SPARQL 1.1-compliant stores without a dedicated adapter, `Gno.Store`
+  can be used directly as a generic adapter.
 
   ## Graph Operations
 

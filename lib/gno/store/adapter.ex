@@ -18,15 +18,6 @@ defmodule Gno.Store.Adapter do
   - `:dataset_endpoint_segment_template` - a URI template for constructing
     the dataset-specific URL segment (e.g. `"/{dataset}"`)
 
-  ## Built-in Adapters
-
-  - `Gno.Store.Adapters.Fuseki`
-  - `Gno.Store.Adapters.Oxigraph`
-  - `Gno.Store.Adapters.Qlever`
-  - `Gno.Store.Adapters.GraphDB`
-
-  For SPARQL 1.1-compliant stores without a dedicated adapter, `Gno.Store`
-  can be used directly as a generic adapter.
   """
 
   alias Gno.Store.SPARQL.Operation
