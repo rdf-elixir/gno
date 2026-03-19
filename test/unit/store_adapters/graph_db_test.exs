@@ -168,7 +168,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
       end
 
       test "returns error when server is not reachable with check_availability: false" do
-        store = %GraphDB{dataset: "nonexistent", host: "nonexistentlocalhost", port: 99999}
+        store = %GraphDB{dataset: "nonexistent", host: "nonexistentlocalhost", port: 9999}
 
         assert {:error, _} = GraphDB.check_setup(store, check_availability: false)
       end
@@ -199,7 +199,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
     end
 
     defp unavailable_graph_db do
-      %GraphDB{dataset: "test", host: "nonexistentlocalhost", port: 99999}
+      %GraphDB{dataset: "test", host: "nonexistentlocalhost", port: 9999}
     end
   end
 end

@@ -1,4 +1,7 @@
 defmodule Gno.StoreCase do
+  @moduledoc """
+  Common `ExUnit.CaseTemplate` for Gno tests that require a clean store.
+  """
   use ExUnit.CaseTemplate
 
   using do

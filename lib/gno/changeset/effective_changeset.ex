@@ -147,9 +147,8 @@ defmodule Gno.EffectiveChangeset do
   #{@merge_limitations_warning}
   """
   def merge([first | rest]) do
-    with {:ok, changeset} <- new(first) do
-      Enum.reduce(rest, changeset, &do_merge(&2, &1))
-    else
+    case new(first) do
+      {:ok, changeset} -> Enum.reduce(rest, changeset, &do_merge(&2, &1))
       {:error, error} -> raise error
     end
   end
@@ -164,9 +163,8 @@ defmodule Gno.EffectiveChangeset do
   end
 
   def merge(changeset, changes) do
-    with {:ok, changeset} <- new(changeset) do
-      do_merge(changeset, changes)
-    else
+    case new(changeset) do
+      {:ok, changeset} -> do_merge(changeset, changes)
       {:error, error} -> raise error
     end
   end

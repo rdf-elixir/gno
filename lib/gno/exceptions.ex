@@ -36,6 +36,7 @@ defmodule Gno.InvalidChangesetError do
   end
 end
 
+# credo:disable-for-next-line Credo.Check.Consistency.ExceptionNames
 defmodule Gno.NoEffectiveChanges do
   @moduledoc """
   Raised when some changes wouldn't have any effects against the current repository.

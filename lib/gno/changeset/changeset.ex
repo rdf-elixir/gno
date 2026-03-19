@@ -161,9 +161,8 @@ defmodule Gno.Changeset do
   end
 
   def update(changeset, changes) do
-    with {:ok, changeset} <- new(changeset) do
-      do_update(changeset, changes)
-    else
+    case new(changeset) do
+      {:ok, changeset} -> do_update(changeset, changes)
       {:error, error} -> raise error
     end
   end

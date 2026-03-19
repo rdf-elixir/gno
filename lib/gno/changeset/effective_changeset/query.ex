@@ -18,8 +18,9 @@ defmodule Gno.EffectiveChangeset.Query do
          effective_replace = effective_add(replace, add_remove_change_graph),
          effective_remove = effective_remove(remove, add_remove_change_graph),
          {:ok, update_overwrites_graph} <- update_overwrites(service, update),
-         {:ok, replace_overwrites_graph} <- replace_overwrites(service, replace),
-         overwrite = overwrite_remove(update_overwrites_graph, replace_overwrites_graph) do
+         {:ok, replace_overwrites_graph} <- replace_overwrites(service, replace) do
+      overwrite = overwrite_remove(update_overwrites_graph, replace_overwrites_graph)
+
       if effective_add || effective_remove || effective_update || effective_replace || overwrite do
         EffectiveChangeset.new(
           add: effective_add,

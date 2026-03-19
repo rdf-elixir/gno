@@ -228,10 +228,10 @@ defmodule Gno.Store.Adapters.Fuseki do
   Fetches all datasets from the Fuseki admin endpoint.
   """
   def all_datasets_info(%__MODULE__{} = adapter) do
-    with {:ok, %{"datasets" => datasets}} <-
-           admin_request(adapter, datasets_admin_endpoint(adapter)) do
-      {:ok, datasets}
-    else
+    case admin_request(adapter, datasets_admin_endpoint(adapter)) do
+      {:ok, %{"datasets" => datasets}} ->
+        {:ok, datasets}
+
       {:ok, _} ->
         {:error,
          "Failed to parse datasets from Fuseki admin endpoint: no \"datasets\" object found"}
