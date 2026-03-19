@@ -31,3 +31,6 @@ gno-*.tar
 # Dialyzer
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
+
+# Generated vocabulary documentation site
+/_site/
