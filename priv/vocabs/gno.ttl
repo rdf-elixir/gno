@@ -10,6 +10,32 @@
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix rtc: <https://w3id.org/rtc#> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix sdo: <https://schema.org/> .
+
+
+##########################################################################
+# Ontology metadata
+##########################################################################
+
+<https://w3id.org/gno#> a owl:Ontology
+    ; dct:title "Gno Vocabulary"
+    ; dct:description "An RDF vocabulary for managing RDF data in SPARQL triple stores. Extends DCAT-R with classes and properties for services, stores, changesets, and commits."
+    ; dct:creator [
+        a foaf:Person ;
+        foaf:name "Marcel Otto" ;
+        foaf:homepage <http://marcelotto.net> ;
+    ]
+    ; dct:created "2025-04-22"^^xsd:date
+    ; dct:modified "2026-03-19"^^xsd:date
+    ; dct:issued "2026-03-19"^^xsd:date
+    ; dct:license <https://creativecommons.org/licenses/by/4.0/>
+    ; owl:versionInfo "0.1.0"
+    ; vann:preferredNamespacePrefix "gno"
+    ; vann:preferredNamespaceUri "https://w3id.org/gno#"
+    ; sdo:codeRepository <https://github.com/rdf-elixir/gno>
+.
+
 
 ##########################################################################
 # Manifest
@@ -31,13 +57,15 @@ gno:Service a rdfs:Class, owl:Class
         ; owl:disjointWith gno:Repository, gno:Store, gno:Dataset
         ; rdfs:label "Service"
         ; rdfs:comment "A gno:Service is a composition of a gno:Repository in a specific gno:Store."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
-    
+
     gno:serviceStore a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
             ; rdfs:domain gno:Service
             ; rdfs:range  gno:Store
             ; rdfs:label "service store"
             ; rdfs:comment "Links a service to its store configuration."
+            ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:serviceCommitOperation a rdf:Property, owl:ObjectProperty, owl:FunctionalProperty
@@ -45,6 +73,7 @@ gno:Service a rdfs:Class, owl:Class
             ; rdfs:range  gno:CommitOperation
             ; rdfs:label "service commit operation"
             ; rdfs:comment "Links a service to its commit operation configuration."
+            ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
 
@@ -56,6 +85,7 @@ gno:Store a rdfs:Class, owl:Class
     ; owl:disjointWith gno:Service, gno:Repository, gno:Dataset
     ; rdfs:label "Store"
     ; rdfs:comment "Base class for triple stores that can host a Gno repository."
+    ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
 
     gno:storeQueryEndpoint a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -63,6 +93,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:anyURI
         ; rdfs:label "store query endpoint"
         ; rdfs:comment "The SPARQL query endpoint URL of the store."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeUpdateEndpoint a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -70,6 +101,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:anyURI
         ; rdfs:label "store update endpoint"
         ; rdfs:comment "The SPARQL update endpoint URL of the store."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeGraphStoreEndpoint a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -77,6 +109,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:anyURI
         ; rdfs:label "store graph store endpoint"
         ; rdfs:comment "The SPARQL Graph Store Protocol endpoint URL of the store."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeEndpointScheme a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -84,6 +117,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:string
         ; rdfs:label "store endpoint scheme"
         ; rdfs:comment "The scheme for the store's endpoints."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeEndpointHost a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -91,6 +125,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:string
         ; rdfs:label "store endpoint host"
         ; rdfs:comment "The host name for the store's endpoints."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeEndpointPort a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -98,6 +133,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:positiveInteger
         ; rdfs:label "store endpoint port"
         ; rdfs:comment "The port number for the store's endpoints."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeEndpointUserInfo a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -105,6 +141,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:string
         ; rdfs:label "store endpoint user info"
         ; rdfs:comment "The user info segment used in endpoint URLs."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeEndpointDataset a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -112,6 +149,7 @@ gno:Store a rdfs:Class, owl:Class
         ; rdfs:range xsd:string
         ; rdfs:label "store endpoint dataset"
         ; rdfs:comment "The dataset name/path segment used in endpoint URLs."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:storeDefaultGraphSemantics a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -126,24 +164,27 @@ gno:Store a rdfs:Class, owl:Class
 # Commit
 ##########################################################################
 
-gno:Commit a rdfs:Class
+gno:Commit a rdfs:Class, owl:Class
         ; rdfs:subClassOf prov:Activity
         ; rdfs:label "Commit"
         ; rdfs:comment "Represents set of changes made to a repository. A commit encapsulates the effective changes resulting from applying a changeset to the current state of the repository."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
 
 ##########################################################################
 # CommitOperation
 ##########################################################################
 
-gno:CommitOperation a rdfs:Class
+gno:CommitOperation a rdfs:Class, owl:Class
         ; rdfs:label "CommitOperation"
         ; rdfs:comment "Represents the configuration of a commit operation of a service."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
 
     gno:commitMiddleware a rdf:Property
         ; rdfs:domain gno:CommitOperation
         ; rdfs:range  gno:CommitMiddleware
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:commitNoEffectiveChangesetHandling a rdf:Property
@@ -151,21 +192,24 @@ gno:CommitOperation a rdfs:Class
         ; rdfs:range  xsd:string
         ; rdfs:label "commit no effective changeset handling"
         ; rdfs:comment "Defines how the commit operation should handle the case that no effective changes result from the changeset. The value MUST be one of the following: 'skip', 'proceed' or 'error'."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
 ##########################################################################
 # CommitMiddleware
 ##########################################################################
 
-gno:CommitMiddleware a rdfs:Class
+gno:CommitMiddleware a rdfs:Class, owl:Class
         ; rdfs:label "CommitMiddleware"
         ; rdfs:comment "Represents a middleware component of a commit operation."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
 
-gno:CommitLogger a rdfs:Class
+gno:CommitLogger a rdfs:Class, owl:Class
         ; rdfs:subClassOf gno:CommitMiddleware
         ; rdfs:label "LoggingMiddleware"
         ; rdfs:comment "Middleware for logging commit operations."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
 .
 
     gno:commitLogLevel a rdf:Property
@@ -173,6 +217,7 @@ gno:CommitLogger a rdfs:Class
         ; rdfs:range  xsd:string
         ; rdfs:label "log level"
         ; rdfs:comment "The log level for the logging middleware. The value MUST be one of the log levels defined in Erlang's Logger module."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:commitLogStates a rdf:Property
@@ -180,6 +225,7 @@ gno:CommitLogger a rdfs:Class
         ; rdfs:range  xsd:string
         ; rdfs:label "log states"
         ; rdfs:comment "The list of states for which log entries should be generated."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:commitLogChanges a rdf:Property
@@ -187,6 +233,7 @@ gno:CommitLogger a rdfs:Class
         ; rdfs:range  xsd:boolean
         ; rdfs:label "log changes"
         ; rdfs:comment "Whether to log the changeset details."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
     gno:commitLogMetadata a rdf:Property
@@ -194,6 +241,7 @@ gno:CommitLogger a rdfs:Class
         ; rdfs:range  xsd:boolean
         ; rdfs:label "log metadata"
         ; rdfs:comment "Whether to log commit metadata."
+        ; rdfs:isDefinedBy <https://w3id.org/gno#>
     .
 
 

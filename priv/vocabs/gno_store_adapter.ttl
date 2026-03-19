@@ -1,24 +1,61 @@
 @prefix gno: <https://w3id.org/gno#> .
 @prefix gnoa: <https://w3id.org/gno/store/adapter/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix sdo: <https://schema.org/> .
 
-gnoa:Oxigraph a rdfs:Class
+
+##########################################################################
+# Ontology metadata
+##########################################################################
+
+<https://w3id.org/gno/store/adapter/> a owl:Ontology
+    ; dct:title "Gno Store Adapter Vocabulary"
+    ; dct:description "Store adapter definitions for the Gno vocabulary, defining classes for specific SPARQL triple store backends."
+    ; dct:creator [
+        a foaf:Person ;
+        foaf:name "Marcel Otto" ;
+        foaf:homepage <http://marcelotto.net> ;
+    ]
+    ; dct:created "2025-04-22"^^xsd:date
+    ; dct:modified "2026-03-19"^^xsd:date
+    ; dct:issued "2026-03-19"^^xsd:date
+    ; dct:license <https://creativecommons.org/licenses/by/4.0/>
+    ; owl:versionInfo "0.1.0"
+    ; owl:imports <https://w3id.org/gno#>
+    ; vann:preferredNamespacePrefix "gnoa"
+    ; vann:preferredNamespaceUri "https://w3id.org/gno/store/adapter/"
+    ; sdo:codeRepository <https://github.com/rdf-elixir/gno>
+.
+
+
+gnoa:Oxigraph a rdfs:Class, owl:Class
     ; rdfs:subClassOf gno:Store
-    ; rdfs:label "Oxigraph store"
+    ; rdfs:label "Oxigraph"
+    ; rdfs:comment "A Gno store backed by Oxigraph, a lightweight SPARQL graph database."
     ; rdfs:seeAlso <https://github.com/oxigraph/oxigraph>
+    ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
 .
 
-gnoa:Fuseki a rdfs:Class
+gnoa:Fuseki a rdfs:Class, owl:Class
     ; rdfs:subClassOf gno:Store
-    ; rdfs:label "Fuseki store"
+    ; rdfs:label "Fuseki"
+    ; rdfs:comment "A Gno store backed by Apache Jena Fuseki, a SPARQL server."
     ; rdfs:seeAlso <https://jena.apache.org/documentation/fuseki2/>
+    ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
 .
 
-gnoa:Qlever a rdfs:Class
+gnoa:Qlever a rdfs:Class, owl:Class
     ; rdfs:subClassOf gno:Store
-    ; rdfs:label "QLever store"
+    ; rdfs:label "Qlever"
+    ; rdfs:comment "A Gno store backed by QLever, a SPARQL engine for large knowledge graphs."
     ; rdfs:seeAlso <https://github.com/ad-freiburg/qlever>
+    ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
 .
 
     gnoa:qleverAccessToken a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
@@ -26,10 +63,13 @@ gnoa:Qlever a rdfs:Class
         ; rdfs:range xsd:string
         ; rdfs:label "QLever access token"
         ; rdfs:comment "Access token for authenticating write operations against a QLever store."
+        ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
     .
 
-gnoa:GraphDB a rdfs:Class
+gnoa:GraphDB a rdfs:Class, owl:Class
     ; rdfs:subClassOf gno:Store
-    ; rdfs:label "GraphDB store"
+    ; rdfs:label "GraphDB"
+    ; rdfs:comment "A Gno store backed by Ontotext GraphDB, an enterprise RDF database."
     ; rdfs:seeAlso <https://graphdb.ontotext.com/>
+    ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
 .
