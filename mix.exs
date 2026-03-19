@@ -80,6 +80,7 @@ defmodule Gno.MixProject do
       {:jason, "~> 1.4"},
       {:hackney, "~> 1.15", only: [:dev, :test]},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false}
     ]
   end
@@ -170,7 +171,8 @@ defmodule Gno.MixProject do
         "deps.unlock --check-unused",
         "compile --warnings-as-errors",
         "format --check-formatted",
-        "test --cover --warnings-as-errors"
+        "test --cover --warnings-as-errors",
+        "credo"
       ]
     ]
   end
