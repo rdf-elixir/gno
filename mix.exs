@@ -37,13 +37,13 @@ defmodule Gno.MixProject do
 
   defp deps do
     [
-      rdf_ex_dep(:rdf, "~> 2.0"),
+      rdf_ex_dep(:rdf, "~> 3.0"),
       rdf_ex_dep(:grax, "~> 0.5"),
       rdf_ex_dep(:sparql_client, "~> 0.5"),
       rdf_ex_dep(:sparql, "~> 0.3"),
-      rdf_ex_dep(:dcat, "~> 0.1"),
       rdf_ex_dep(:prov, "~> 0.1"),
-      rdf_ex_dep(:dcatr, "~> 0.1"),
+      rdf_ex_dep(:dcat, "~> 0.1"),
+      {:dcatr, "~> 0.1"},
       # we are using YuriTemplate, because we have it already as a dependency of Grax
       {:yuri_template, "~> 1.1"},
       {:uniq, "~> 0.6"},
