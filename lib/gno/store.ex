@@ -50,6 +50,7 @@ defmodule Gno.Store do
     property host: Gno.storeEndpointHost(), type: :string, default: "localhost"
     property port: Gno.storeEndpointPort(), type: :integer, default: 7878
     property userinfo: Gno.storeEndpointUserInfo(), type: :string
+    property default_graph_semantics_config: Gno.storeDefaultGraphSemantics(), type: :string
   end
 
   @doc """
