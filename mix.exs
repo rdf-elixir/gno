@@ -15,6 +15,34 @@ defmodule Gno.MixProject do
       deps: deps(),
       aliases: aliases(),
       dialyzer: dialyzer(),
+      test_coverage: [
+        summary: [threshold: 81],
+        ignore_modules: [
+          Gno.Utils,
+          # Generated Grax.Schema.Registerable modules
+          ~r/^Grax\.Schema\.Registerable\..*/,
+          # RDF.Vocabulary.Namespace generated module
+          Gno.NS,
+          Gno.NS.Gno,
+          Gno.NS.GnoA,
+          # Exception modules
+          Gno.Store.UnavailableError,
+          Gno.Store.InvalidEndpointError,
+          Gno.Store.SPARQL.InvalidOperationError,
+          Gno.Service.SetupError,
+          Gno.InvalidChangesetError,
+          Gno.NoEffectiveChanges,
+          Gno.Commit.ProcessorError,
+          Gno.Commit.ProcessorRollbackError,
+          # Mix tasks
+          Mix.Tasks.Gno.Setup,
+          Mix.Tasks.Gno.Teardown,
+          # Test support
+          GnoCase,
+          Gno.TestData,
+          Gno.TestFactories
+        ]
+      ],
 
       # Docs
       name: "Gno",
@@ -142,7 +170,7 @@ defmodule Gno.MixProject do
         "deps.unlock --check-unused",
         "compile --warnings-as-errors",
         "format --check-formatted",
-        "test --warnings-as-errors"
+        "test --cover --warnings-as-errors"
       ]
     ]
   end
