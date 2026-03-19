@@ -12,6 +12,14 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    services:
+      fuseki:
+        image: stain/jena-fuseki
+        ports:
+          - 3030:3030
+        env:
+          FUSEKI_DATASET_1: /gno-test-dataset
+        options: --name fuseki
     env:
       MIX_ENV: test
     strategy:
@@ -34,9 +42,34 @@ jobs:
               otp: 28.3
             build-flags: --warnings-as-errors
             test-flags: --cover
+    defaults:
+      run:
+        # Hack to fix ANSI color codes w/ GH actions (from https://github.com/orgs/community/discussions/26944#discussioncomment-10256620)
+        shell: 'script -q -e -c "export TERM=xterm-256color; bash --noprofile --norc -eo pipefail {0}"'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Create and copy shiro.ini, then restart Fuseki
+        run: |
+          echo "
+          ## Minimal configuration without auth from https://jena.apache.org/documentation/fuseki2/fuseki-security.html
+          [main]
+          localhost=org.apache.jena.fuseki.authz.LocalhostFilter
+
+          [urls]
+          ## Control functions open to anyone
+          /$/server = anon
+          /$/ping   = anon
+          ## and the rest are restricted to localhost.
+          ## See above for 'localhost'
+          /$/** = localhost
+          /**=anon
+          " > shiro.ini
+          docker cp shiro.ini fuseki:/fuseki/shiro.ini
+          docker exec fuseki ls -l /fuseki/shiro.ini
+          docker restart fuseki
+          timeout 30s bash -c 'until curl -s -f -o /dev/null http://localhost:3030/$/ping; do echo "Waiting for Fuseki..."; sleep 2; done'
 
       - name: Setup Elixir Project
         uses: ./.github/actions/elixir-setup
