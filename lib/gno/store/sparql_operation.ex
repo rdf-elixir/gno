@@ -41,6 +41,13 @@ defmodule Gno.Store.SPARQL.Operation do
 
   import Gno.Utils, only: [bang!: 2]
 
+  @doc """
+  Creates a new SPARQL operation with the given name and payload.
+
+  The name determines the operation type (`:query` or `:update`) and subtype
+  automatically. See the convenience functions (`select/2`, `insert_data/2`, etc.)
+  for creating specific operation types.
+  """
   def new(name, payload, opts \\ []) do
     with {:ok, name, type, update_type} <- typed_name(name) do
       {:ok,
