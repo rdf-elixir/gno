@@ -46,7 +46,24 @@ defmodule Gno.MixProject do
 
       # Docs
       name: "Gno",
-      docs: docs()
+      docs: docs(),
+
+      # Hex
+      package: package(),
+      description: "A unified Elixir API for managing RDF data in SPARQL triple stores."
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["Marcel Otto"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @scm_url,
+        "User Guide" => "https://rdf-elixir.dev/gno/",
+        "Changelog" => @scm_url <> "/blob/main/CHANGELOG.md"
+      },
+      files: ~w[lib priv mix.exs .formatter.exs VERSION *.md]
     ]
   end
 
@@ -98,6 +115,12 @@ defmodule Gno.MixProject do
       source_url: @scm_url,
       source_ref: "v#{@version}",
       logo: "gno-logo.png",
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
+      extras: [
+        {:"README.md", [title: "About"]},
+        {:"CHANGELOG.md", [title: "CHANGELOG"]},
+        {:"LICENSE.md", [title: "License"]}
+      ],
       groups_for_modules: [
         Model: [
           Gno.Service,
