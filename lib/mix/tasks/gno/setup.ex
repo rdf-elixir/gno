@@ -34,7 +34,13 @@ defmodule Mix.Tasks.Gno.Setup do
     end
   end
 
-  defp build_setup_opts(parsed_opts) do
+  @doc """
+  Builds `Gno.setup/1` options from parsed CLI options.
+
+  This function is public because it is reused by downstream mix tasks
+  (e.g. `mix og.setup` in Ontogen) that extend the setup workflow.
+  """
+  def build_setup_opts(parsed_opts) do
     store_options =
       []
       |> then(fn store_opts ->
