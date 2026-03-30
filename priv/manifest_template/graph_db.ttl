@@ -6,4 +6,5 @@
     ; gno:storeEndpointHost "localhost"
     ; gno:storeEndpointPort 7200
     ; gno:storeEndpointDataset "name-of-the-repository"
+    ; gnoa:graphDbRdfStarSupport false
 .

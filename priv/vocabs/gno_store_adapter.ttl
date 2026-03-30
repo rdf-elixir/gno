@@ -73,3 +73,11 @@ gnoa:GraphDB a rdfs:Class, owl:Class
     ; rdfs:seeAlso <https://graphdb.ontotext.com/>
     ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
 .
+
+    gnoa:graphDbRdfStarSupport a rdf:Property, owl:DatatypeProperty, owl:FunctionalProperty
+        ; rdfs:domain gnoa:GraphDB
+        ; rdfs:range xsd:boolean
+        ; rdfs:label "GraphDB RDF-star support"
+        ; rdfs:comment "When enabled, uses RDF-star specific MIME types in Accept headers for query operations to receive native triple terms instead of Base64-encoded URNs."
+        ; rdfs:isDefinedBy <https://w3id.org/gno/store/adapter/>
+    .

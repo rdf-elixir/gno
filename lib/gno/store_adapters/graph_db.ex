@@ -11,10 +11,11 @@ defmodule Gno.Store.Adapters.GraphDB do
       @prefix gnoa: <https://w3id.org/gno/store/adapter/> .
 
       <GraphDB> a gnoa:GraphDB
+          ; gno:storeEndpointDataset "my-repository"    # required
           ; gno:storeEndpointScheme "http"              # optional (default: "http")
           ; gno:storeEndpointHost "localhost"           # optional (default: "localhost")
           ; gno:storeEndpointPort 7200                  # optional (default: 7200)
-          ; gno:storeEndpointDataset "my-repository"   # required
+          ; gnoa:graphDbRdfStarSupport true             # optional (default: false)
       .
 
   ## Default Graph Semantics
@@ -25,6 +26,18 @@ defmodule Gno.Store.Adapters.GraphDB do
   to `<http://www.openrdf.org/schema/sesame#nil>` for query operations.
 
   This can be overridden per manifest with `gno:storeDefaultGraphSemantics "isolated"`.
+
+  ## RDF-star Support
+
+  GraphDB (RDF4J-based) encodes embedded RDF-star triples as `urn:rdf4j:triple:*`
+  IRIs in standard SPARQL result formats. Setting `gnoa:graphDbRdfStarSupport` to
+  `true` switches to RDF-star specific MIME types in Accept headers, so GraphDB
+  returns native triple terms instead:
+
+  - SELECT/ASK: `application/x-sparqlstar-results+json`
+  - CONSTRUCT/DESCRIBE: `text/x-turtlestar`
+
+  Requires GraphDB 10+.
 
   ## Prerequisites
 
@@ -51,6 +64,8 @@ defmodule Gno.Store.Adapters.GraphDB do
     property query_endpoint: Gno.storeQueryEndpoint(), type: :iri, required: false
     property update_endpoint: Gno.storeUpdateEndpoint(), type: :iri, required: false
     property graph_store_endpoint: Gno.storeGraphStoreEndpoint(), type: :iri, required: false
+
+    property rdf_star_support: GnoA.graphDbRdfStarSupport(), type: :boolean, default: false
   end
 
   # we need to define this after the Grax schema to be able to use %__MODULE__{} in the macro
@@ -63,11 +78,43 @@ defmodule Gno.Store.Adapters.GraphDB do
 
   import RDF.Sigils
 
+  @select_star_accept "application/x-sparqlstar-results+json"
+  @graph_star_accept "text/x-turtlestar"
+
   @impl true
   def default_graph_semantics, do: :union
 
   @impl true
   def default_graph_iri, do: ~I<http://www.openrdf.org/schema/sesame#nil>
+
+  @impl true
+  def handle_sparql(operation, adapter, graph_name, opts \\ [])
+
+  def handle_sparql(
+        %Operation{type: :query} = operation,
+        %__MODULE__{rdf_star_support: true} = adapter,
+        graph_name,
+        opts
+      ) do
+    opts = with_rdf_star_accept(opts, operation)
+    GenSPARQL.handle(operation, adapter, graph_name, opts)
+  end
+
+  def handle_sparql(%Operation{} = operation, %__MODULE__{} = adapter, graph_name, opts) do
+    GenSPARQL.handle(operation, adapter, graph_name, opts)
+  end
+
+  defp with_rdf_star_accept(opts, %Operation{name: name}) when name in [:select, :ask] do
+    opts
+    |> Keyword.put(:accept_header, @select_star_accept)
+    |> Keyword.put(:result_format, :json)
+  end
+
+  defp with_rdf_star_accept(opts, %Operation{name: name}) when name in [:construct, :describe] do
+    opts
+    |> Keyword.put(:accept_header, @graph_star_accept)
+    |> Keyword.put(:result_format, :turtle)
+  end
 
   @doc """
   Returns the GraphDB REST API base endpoint.

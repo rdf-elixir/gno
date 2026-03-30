@@ -50,4 +50,5 @@
 <GraphDB> a gnoa:GraphDB
     ; gno:storeEndpointDataset "gno-test-repository"
     ; gno:storeEndpointPort 7200
+    ; gnoa:graphDbRdfStarSupport false
 .

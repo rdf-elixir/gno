@@ -4,6 +4,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
   doctest Gno.Store.Adapters.GraphDB
 
   alias Gno.Store
+  alias Gno.Store.SPARQL.Operation
 
   @configured_store_adapter configured_store_adapter()
 
@@ -112,6 +113,10 @@ defmodule Gno.Store.Adapters.GraphDBTest do
     end
   end
 
+  test "rdf_star_support defaults to false" do
+    assert %GraphDB{dataset: "test"}.rdf_star_support == false
+  end
+
   describe "GraphDB REST API endpoints" do
     test "rest_base/1" do
       assert GraphDB.rest_base(%GraphDB{dataset: "test-repository"}) ==
@@ -195,6 +200,98 @@ defmodule Gno.Store.Adapters.GraphDBTest do
       test "repository_size/1" do
         assert {:ok, size} = GraphDB.repository_size(Gno.store!())
         assert is_integer(size)
+      end
+    end
+
+    describe "RDF-star support" do
+      @rdf_star_delete """
+      PREFIX ex: <http://example.com/>
+      DELETE DATA { <<ex:S1 ex:p1 ex:O1>> ex:confidence "0.9"^^<http://www.w3.org/2001/XMLSchema#decimal> . }
+      """
+      @rdf_star_select """
+      PREFIX ex: <http://example.com/>
+      SELECT ?t ?o WHERE { ?t ex:confidence ?o }
+      """
+      @rdf_star_construct """
+      PREFIX ex: <http://example.com/>
+      CONSTRUCT { ?t ex:confidence ?o } WHERE { ?t ex:confidence ?o }
+      """
+
+      setup do
+        store = Gno.store!()
+        Operation.update!(@rdf_star_insert) |> Store.handle_sparql(store, nil)
+        on_exit(fn -> Operation.update!(@rdf_star_delete) |> Store.handle_sparql(store, nil) end)
+        {:ok, store: store}
+      end
+
+      test "SELECT with rdf_star_support enabled returns native triple terms", %{store: store} do
+        star_store = %{store | rdf_star_support: true}
+
+        assert {:ok, %SPARQL.Query.Result{results: [result]}} =
+                 @rdf_star_select
+                 |> Operation.select!()
+                 |> Store.handle_sparql(star_store, nil)
+
+        assert {~I<http://example.com/S1>, ~I<http://example.com/p1>, ~I<http://example.com/O1>} =
+                 result["t"]
+      end
+
+      test "SELECT without rdf_star_support returns encoded IRI", %{store: store} do
+        assert {:ok, %SPARQL.Query.Result{results: [result]}} =
+                 @rdf_star_select
+                 |> Operation.select!()
+                 |> Store.handle_sparql(store, nil)
+
+        assert %RDF.IRI{} = result["t"]
+        assert result["t"] |> to_string() |> String.starts_with?("urn:rdf4j:triple:")
+      end
+
+      test "CONSTRUCT with rdf_star_support enabled returns native triple terms", %{store: store} do
+        star_store = %{store | rdf_star_support: true}
+
+        assert {:ok, graph} =
+                 @rdf_star_construct
+                 |> Operation.construct!()
+                 |> Store.handle_sparql(star_store, nil)
+
+        assert [{subject, ~I<http://example.com/confidence>, _}] = RDF.Graph.triples(graph)
+
+        assert {~I<http://example.com/S1>, ~I<http://example.com/p1>, ~I<http://example.com/O1>} =
+                 subject
+      end
+
+      test "CONSTRUCT without rdf_star_support returns encoded IRI", %{store: store} do
+        assert {:ok, graph} =
+                 @rdf_star_construct
+                 |> Operation.construct!()
+                 |> Store.handle_sparql(store, nil)
+
+        assert [{subject, ~I<http://example.com/confidence>, _}] = RDF.Graph.triples(graph)
+        assert %RDF.IRI{} = subject
+        assert subject |> to_string() |> String.starts_with?("urn:rdf4j:triple:")
+      end
+
+      test "DESCRIBE with rdf_star_support enabled returns native triple terms", %{store: store} do
+        star_store = %{store | rdf_star_support: true}
+
+        assert {:ok, graph} =
+                 "PREFIX ex: <http://example.com/>\nDESCRIBE <<ex:S1 ex:p1 ex:O1>>"
+                 |> Operation.describe!()
+                 |> Store.handle_sparql(star_store, nil)
+
+        assert [{subject, ~I<http://example.com/confidence>, _}] = RDF.Graph.triples(graph)
+
+        assert {~I<http://example.com/S1>, ~I<http://example.com/p1>, ~I<http://example.com/O1>} =
+                 subject
+      end
+
+      test "ASK with rdf_star_support enabled works", %{store: store} do
+        star_store = %{store | rdf_star_support: true}
+
+        assert {:ok, %SPARQL.Query.Result{results: true}} =
+                 "PREFIX ex: <http://example.com/>\nASK { <<ex:S1 ex:p1 ex:O1>> ex:confidence ?o }"
+                 |> Operation.ask!()
+                 |> Store.handle_sparql(star_store, nil)
       end
     end
 
