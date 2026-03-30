@@ -4,7 +4,6 @@ defmodule Gno.Store.Adapters.GraphDBTest do
   doctest Gno.Store.Adapters.GraphDB
 
   alias Gno.Store
-  alias Gno.Store.SPARQL.Operation
 
   @configured_store_adapter configured_store_adapter()
 
@@ -152,6 +151,8 @@ defmodule Gno.Store.Adapters.GraphDBTest do
   end
 
   if @configured_store_adapter == GraphDB do
+    alias Gno.Store.SPARQL.Operation
+
     describe "check_availability/2" do
       test "returns error when server is not reachable" do
         assert {:error, %Gno.Store.UnavailableError{reason: :server_unreachable}} =

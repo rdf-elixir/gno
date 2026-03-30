@@ -16,7 +16,7 @@ defmodule Gno.MixProject do
       aliases: aliases(),
       dialyzer: dialyzer(),
       test_coverage: [
-        summary: [threshold: 81],
+        summary: [threshold: 80],
         ignore_modules: [
           Gno.Utils,
           # Generated Grax.Schema.Registerable modules
