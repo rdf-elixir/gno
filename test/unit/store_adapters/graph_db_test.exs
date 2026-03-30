@@ -151,8 +151,6 @@ defmodule Gno.Store.Adapters.GraphDBTest do
   end
 
   if @configured_store_adapter == GraphDB do
-    alias Gno.Store.SPARQL.Operation
-
     describe "check_availability/2" do
       test "returns error when server is not reachable" do
         assert {:error, %Gno.Store.UnavailableError{reason: :server_unreachable}} =
@@ -220,8 +218,12 @@ defmodule Gno.Store.Adapters.GraphDBTest do
 
       setup do
         store = Gno.store!()
-        Operation.update!(@rdf_star_insert) |> Store.handle_sparql(store, nil)
-        on_exit(fn -> Operation.update!(@rdf_star_delete) |> Store.handle_sparql(store, nil) end)
+        Gno.Store.SPARQL.Operation.update!(@rdf_star_insert) |> Store.handle_sparql(store, nil)
+
+        on_exit(fn ->
+          Gno.Store.SPARQL.Operation.update!(@rdf_star_delete) |> Store.handle_sparql(store, nil)
+        end)
+
         {:ok, store: store}
       end
 
@@ -230,7 +232,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
 
         assert {:ok, %SPARQL.Query.Result{results: [result]}} =
                  @rdf_star_select
-                 |> Operation.select!()
+                 |> Gno.Store.SPARQL.Operation.select!()
                  |> Store.handle_sparql(star_store, nil)
 
         assert {~I<http://example.com/S1>, ~I<http://example.com/p1>, ~I<http://example.com/O1>} =
@@ -240,7 +242,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
       test "SELECT without rdf_star_support returns encoded IRI", %{store: store} do
         assert {:ok, %SPARQL.Query.Result{results: [result]}} =
                  @rdf_star_select
-                 |> Operation.select!()
+                 |> Gno.Store.SPARQL.Operation.select!()
                  |> Store.handle_sparql(store, nil)
 
         assert %RDF.IRI{} = result["t"]
@@ -252,7 +254,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
 
         assert {:ok, graph} =
                  @rdf_star_construct
-                 |> Operation.construct!()
+                 |> Gno.Store.SPARQL.Operation.construct!()
                  |> Store.handle_sparql(star_store, nil)
 
         assert [{subject, ~I<http://example.com/confidence>, _}] = RDF.Graph.triples(graph)
@@ -264,7 +266,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
       test "CONSTRUCT without rdf_star_support returns encoded IRI", %{store: store} do
         assert {:ok, graph} =
                  @rdf_star_construct
-                 |> Operation.construct!()
+                 |> Gno.Store.SPARQL.Operation.construct!()
                  |> Store.handle_sparql(store, nil)
 
         assert [{subject, ~I<http://example.com/confidence>, _}] = RDF.Graph.triples(graph)
@@ -277,7 +279,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
 
         assert {:ok, graph} =
                  "PREFIX ex: <http://example.com/>\nDESCRIBE <<ex:S1 ex:p1 ex:O1>>"
-                 |> Operation.describe!()
+                 |> Gno.Store.SPARQL.Operation.describe!()
                  |> Store.handle_sparql(star_store, nil)
 
         assert [{subject, ~I<http://example.com/confidence>, _}] = RDF.Graph.triples(graph)
@@ -291,7 +293,7 @@ defmodule Gno.Store.Adapters.GraphDBTest do
 
         assert {:ok, %SPARQL.Query.Result{results: true}} =
                  "PREFIX ex: <http://example.com/>\nASK { <<ex:S1 ex:p1 ex:O1>> ex:confidence ?o }"
-                 |> Operation.ask!()
+                 |> Gno.Store.SPARQL.Operation.ask!()
                  |> Store.handle_sparql(star_store, nil)
       end
     end
