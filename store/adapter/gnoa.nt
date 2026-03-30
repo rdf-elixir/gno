@@ -1,0 +1,60 @@
+_:genid1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+_:genid1 <http://xmlns.com/foaf/0.1/name> "Marcel Otto" .
+_:genid1 <http://xmlns.com/foaf/0.1/homepage> <http://marcelotto.net> .
+<https://w3id.org/gno/store/adapter/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/title> "Gno Store Adapter Vocabulary" .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/description> "Store adapter definitions for the Gno vocabulary, defining classes for specific SPARQL triple store backends." .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/creator> _:genid1 .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/created> "2025-04-22"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/modified> "2026-03-19"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/issued> "2026-03-19"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/dc/terms/license> <https://creativecommons.org/licenses/by/4.0/> .
+<https://w3id.org/gno/store/adapter/> <http://www.w3.org/2002/07/owl#versionInfo> "0.1.0" .
+<https://w3id.org/gno/store/adapter/> <http://www.w3.org/2002/07/owl#imports> <https://w3id.org/gno#> .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/vocab/vann/preferredNamespacePrefix> "gnoa" .
+<https://w3id.org/gno/store/adapter/> <http://purl.org/vocab/vann/preferredNamespaceUri> "https://w3id.org/gno/store/adapter/" .
+<https://w3id.org/gno/store/adapter/> <https://schema.org/codeRepository> <https://github.com/rdf-elixir/gno> .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/2000/01/rdf-schema#label> "Oxigraph" .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/2000/01/rdf-schema#comment> "A Gno store backed by Oxigraph, a lightweight SPARQL graph database." .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://github.com/oxigraph/oxigraph> .
+<https://w3id.org/gno/store/adapter/Oxigraph> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno/store/adapter/> .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/2000/01/rdf-schema#label> "Fuseki" .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/2000/01/rdf-schema#comment> "A Gno store backed by Apache Jena Fuseki, a SPARQL server." .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://jena.apache.org/documentation/fuseki2/> .
+<https://w3id.org/gno/store/adapter/Fuseki> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno/store/adapter/> .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/2000/01/rdf-schema#label> "Qlever" .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/2000/01/rdf-schema#comment> "A Gno store backed by QLever, a SPARQL engine for large knowledge graphs." .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://github.com/ad-freiburg/qlever> .
+<https://w3id.org/gno/store/adapter/Qlever> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno/store/adapter/> .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno/store/adapter/Qlever> .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#string> .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/2000/01/rdf-schema#label> "QLever access token" .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/2000/01/rdf-schema#comment> "Access token for authenticating write operations against a QLever store." .
+<https://w3id.org/gno/store/adapter/qleverAccessToken> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno/store/adapter/> .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://w3id.org/gno#Store> .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/2000/01/rdf-schema#label> "GraphDB" .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/2000/01/rdf-schema#comment> "A Gno store backed by Ontotext GraphDB, an enterprise RDF database." .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://graphdb.ontotext.com/> .
+<https://w3id.org/gno/store/adapter/GraphDB> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno/store/adapter/> .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/2000/01/rdf-schema#domain> <https://w3id.org/gno/store/adapter/GraphDB> .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#boolean> .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/2000/01/rdf-schema#label> "GraphDB RDF-star support" .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/2000/01/rdf-schema#comment> "When enabled, uses RDF-star specific MIME types in Accept headers for query operations to receive native triple terms instead of Base64-encoded URNs." .
+<https://w3id.org/gno/store/adapter/graphDbRdfStarSupport> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://w3id.org/gno/store/adapter/> .
