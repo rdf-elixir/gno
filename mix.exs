@@ -95,7 +95,7 @@ defmodule Gno.MixProject do
       {:nimble_options, "~> 1.1"},
       {:tesla, "~> 1.2"},
       {:jason, "~> 1.4"},
-      {:hackney, "~> 1.15", only: [:dev, :test]},
+      {:hackney, "~> 4.3", only: [:dev, :test]},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false}
