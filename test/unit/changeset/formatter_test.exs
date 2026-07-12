@@ -59,25 +59,44 @@ defmodule Gno.Changeset.FormatterTest do
                |> String.trim_trailing()
     end
 
-    test "lines are never wrapped" do
+    test "lines are never wrapped for the current terminal width" do
+      assert_stat_lines_not_wrapped(terminal_width(), color: false)
+    end
+
+    test "lines are never wrapped at 80 columns" do
+      terminal_width = 80
+
+      assert_stat_lines_not_wrapped(terminal_width,
+        color: false,
+        terminal_width: terminal_width
+      )
+    end
+
+    def assert_stat_lines_not_wrapped(terminal_width, formatter_opts) do
       large_commit =
         effective_changeset(
           add: 1..3 |> Enum.to_list() |> graph(),
           update: 1..100 |> Enum.map(&{10, &1}) |> graph()
         )
 
-      assert_no_line_wrap(Formatter.format(large_commit, :stat, color: false))
+      assert_no_line_wrap(
+        Formatter.format(large_commit, :stat, formatter_opts),
+        terminal_width
+      )
 
       large_resource =
         changeset(
           add:
             graph([
-              {"http://example.com/#{String.duplicate("very", terminal_width())}long", EX.P, EX.O}
+              {"http://example.com/#{String.duplicate("very", terminal_width)}long", EX.P, EX.O}
             ]),
           remove: 1..100 |> Enum.map(&{10, &1}) |> graph()
         )
 
-      assert_no_line_wrap(Formatter.format(large_resource, :stat, color: false))
+      assert_no_line_wrap(
+        Formatter.format(large_resource, :stat, formatter_opts),
+        terminal_width
+      )
     end
   end
 
@@ -158,11 +177,11 @@ defmodule Gno.Changeset.FormatterTest do
     end
   end
 
-  def assert_no_line_wrap(text) do
+  def assert_no_line_wrap(text, terminal_width) do
     text
     |> String.split("\n")
     |> Enum.each(fn line ->
-      assert String.length(line) <= terminal_width()
+      assert String.length(line) <= terminal_width
     end)
   end
 end

@@ -7,6 +7,9 @@ defmodule Gno.Changeset.Formatter do
 
   import Gno.Utils
 
+  @stat_fixed_length 5
+  @min_change_stats_length 1
+
   # ATTENTION: The order of this list is relevant! Since Optimus, the command-line
   # parser used in the CLI, unfortunately doesn't keep the order of the options,
   # we show multiple selected format in the order defined by this list.
@@ -53,6 +56,7 @@ defmodule Gno.Changeset.Formatter do
 
   defp do_format(changeset, :stat, opts) do
     colorize = Keyword.get(opts, :color, Gno.ansi_enabled?())
+    terminal_width = Keyword.get_lazy(opts, :terminal_width, &terminal_width/0)
     insertions = Changeset.Helper.inserts(changeset)
     deletions = Changeset.Helper.removals(changeset)
     overwrites = Changeset.Helper.overwrites(changeset)
@@ -68,7 +72,9 @@ defmodule Gno.Changeset.Formatter do
       |> Enum.sort()
 
     longest_resource = changed_resources |> Enum.map(&String.length/1) |> Enum.max()
-    max_resource_column_length = max_resource_column_length(max_change_length)
+
+    max_resource_column_length =
+      max_resource_column_length(terminal_width, max_change_length)
 
     {resource_column, truncate?} =
       if longest_resource > max_resource_column_length do
@@ -77,7 +83,8 @@ defmodule Gno.Changeset.Formatter do
         {longest_resource, false}
       end
 
-    max_change_stats_length = terminal_width() - resource_column - max_change_length - 5
+    max_change_stats_length =
+      terminal_width - resource_column - max_change_length - @stat_fixed_length
 
     [
       Enum.map(changed_resources, fn resource ->
@@ -198,5 +205,12 @@ defmodule Gno.Changeset.Formatter do
     Enum.reverse(elements)
   end
 
-  defp max_resource_column_length(reserved), do: div((terminal_width() - reserved) * 95, 100)
+  defp max_resource_column_length(terminal_width, reserved) do
+    percentage_limit = div((terminal_width - reserved) * 95, 100)
+
+    line_limit =
+      terminal_width - reserved - @stat_fixed_length - @min_change_stats_length
+
+    min(percentage_limit, line_limit)
+  end
 end

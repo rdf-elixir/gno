@@ -11,6 +11,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - RDF-star support for the GraphDB adapter via `gnoa:graphDbRdfStarSupport` manifest property
 
+### Fixed
+
+- A crash when formatting changesets as `:stat` on narrow terminals
+
 [Compare v0.1.0...HEAD](https://github.com/rdf-elixir/gno/compare/v0.1.0...HEAD)
 
 
