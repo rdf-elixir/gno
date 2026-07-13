@@ -54,6 +54,5 @@ defmodule Gno.Commit.Update do
     end
   end
 
-  defp triples(nil), do: ""
   defp triples(data), do: NTriples.write_string!(data)
 end

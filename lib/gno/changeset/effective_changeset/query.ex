@@ -131,8 +131,6 @@ defmodule Gno.EffectiveChangeset.Query do
     end)
   end
 
-  defp update_overwrites_query(nil), do: ""
-
   defp update_overwrites_query(update) do
     """
     CONSTRUCT { ?s ?p ?o . }
@@ -156,8 +154,6 @@ defmodule Gno.EffectiveChangeset.Query do
     end)
     |> Enum.map_join("\n", fn {s, p} -> "(#{to_term(s)} #{to_term(p)})" end)
   end
-
-  defp replace_overwrites_query(nil), do: ""
 
   defp replace_overwrites_query(replace) do
     """

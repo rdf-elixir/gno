@@ -167,18 +167,7 @@ defmodule Gno.Store.Adapter do
         end
       else
         def dataset_endpoint_segment(%__MODULE__{} = adapter) do
-          if :dataset in Map.keys(__MODULE__.__struct__()) do
-            if dataset = Map.get(adapter, :dataset) do
-              {:ok, dataset}
-            else
-              {:error,
-               InvalidEndpointError.exception(
-                 "missing :dataset value for store #{inspect(adapter)}"
-               )}
-            end
-          else
-            {:ok, ""}
-          end
+          Gno.Store.Adapter.default_dataset_endpoint_segment(adapter)
         end
       end
 
@@ -241,6 +230,15 @@ defmodule Gno.Store.Adapter do
                      graph_semantics: 1
     end
   end
+
+  @doc false
+  def default_dataset_endpoint_segment(%_adapter_type{dataset: nil} = adapter) do
+    {:error,
+     InvalidEndpointError.exception("missing :dataset value for store #{inspect(adapter)}")}
+  end
+
+  def default_dataset_endpoint_segment(%_adapter_type{dataset: dataset}), do: {:ok, dataset}
+  def default_dataset_endpoint_segment(%_adapter_type{}), do: {:ok, ""}
 
   @doc """
   Returns the store adapter name for the given store adapter module.
